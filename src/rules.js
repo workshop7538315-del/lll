@@ -27,10 +27,10 @@ const CARDS={
  vault:{n:'棒高跳び',c:1,t:'atk',move:1,icon:'high-kick',r:{s:'leap',n:3},aim:'empty',e:[{k:'moveTo',jump:1},block(4)],d:'3マス以内へ跳び、ガード4を得る。'},
  // 魔法
  bolt:{n:'魔弾',c:1,t:'atk',icon:'magic-swirl',anim:'spell',fx:'bolt',r:{s:'dia',n:4},aim:'enemy',e:[dmg(4)],d:'射程4の敵に4ダメージ。'},
- fireball:{n:'爆炎',c:2,t:'atk',icon:'fire-bomb',anim:'spell',fx:'fire',r:{s:'dia',n:4},aim:'any',a:'plus',e:[dmg(6),st('burn',2)],d:'着弾点と上下左右に6ダメージ、火傷2。'},
- frost:{n:'氷縛',c:1,t:'atk',icon:'frozen-orb',anim:'spell',fx:'ice',r:{s:'dia',n:3},aim:'enemy',e:[dmg(2),st('root',1)],d:'2ダメージ。拘束1：次の手番、移動カードを使えない。'},
- meteor:{n:'隕石',c:3,t:'atk',icon:'meteor-impact',anim:'spell',fx:'fire',r:{s:'dia',n:6,nolos:1},aim:'any',a:'sq',e:[dmg(11)],d:'射程6（遮蔽無視）の3×3に11ダメージ。'},
- chain:{n:'雷鎖',c:2,t:'atk',icon:'chain-lightning',anim:'spell',fx:'bolt',r:{s:'star',n:5},aim:'any',a:'pierce',e:[dmg(6)],d:'8方向いずれかの直線5マスを貫き6ダメージ。'},
+ fireball:{el:'fire',n:'爆炎',c:2,t:'atk',icon:'fire-bomb',anim:'spell',fx:'fire',r:{s:'dia',n:4},aim:'any',a:'plus',e:[dmg(6),st('burn',2)],d:'着弾点と上下左右に6ダメージ、火傷2。'},
+ frost:{el:'ice',n:'氷縛',c:1,t:'atk',icon:'frozen-orb',anim:'spell',fx:'ice',r:{s:'dia',n:3},aim:'enemy',e:[dmg(2),st('root',1)],d:'2ダメージ。拘束1：次の手番、移動カードを使えない。'},
+ meteor:{el:'fire',n:'隕石',c:3,t:'atk',icon:'meteor-impact',anim:'spell',fx:'fire',r:{s:'dia',n:6,nolos:1},aim:'any',a:'sq',e:[dmg(11)],d:'射程6（遮蔽無視）の3×3に11ダメージ。'},
+ chain:{el:'thunder',n:'雷鎖',c:2,t:'atk',icon:'chain-lightning',anim:'spell',fx:'bolt',r:{s:'star',n:5},aim:'any',a:'pierce',e:[dmg(6)],d:'8方向いずれかの直線5マスを貫き6ダメージ。水辺の敵には感電が広がる。'},
  gust:{n:'烈風',c:1,t:'atk',icon:'wind-slap',anim:'spell',fx:'bolt',r:{s:'self'},aim:'self',a:'around',e:[dmg(1),{k:'push',v:2}],d:'周囲8マスに1ダメージ、外へ2マス押す。'},
  // 弓
  shot:{n:'射撃',c:1,t:'atk',icon:'bow-arrow',anim:'weapon',fx:'arrow',r:{s:'star',n:4,min:2},aim:'enemy',e:[dmg(5)],d:'8方向の直線、距離2〜4の敵に5ダメージ。'},
@@ -38,7 +38,7 @@ const CARDS={
  rain:{n:'矢の雨',c:2,t:'atk',icon:'arrow-cluster',anim:'weapon',fx:'arrow',r:{s:'dia',n:5,min:2,nolos:1},aim:'any',a:'sq',e:[dmg(4)],d:'射程2〜5（遮蔽無視）の3×3に4ダメージ。'},
  pin:{n:'足縫い',c:1,t:'atk',icon:'barbed-arrow',anim:'weapon',fx:'arrow',r:{s:'star',n:4,min:1},aim:'enemy',e:[dmg(2),st('root',1)],d:'2ダメージ。拘束1を与える。'},
  kickoff:{n:'蹴り跳び',c:1,t:'atk',move:1,icon:'boot-stomp',r:{s:'adj'},aim:'enemy',e:[dmg(2),{k:'retreat',v:3}],d:'隣の敵に2ダメージ、3マス下がる。'},
- fire_arrow:{n:'火矢',c:1,t:'atk',icon:'flaming-arrow',anim:'weapon',fx:'fire',r:{s:'star',n:5,min:2},aim:'enemy',e:[dmg(3),st('burn',3)],d:'距離2〜5の敵に3ダメージ、火傷3。'},
+ fire_arrow:{el:'fire',n:'火矢',c:1,t:'atk',icon:'flaming-arrow',anim:'weapon',fx:'fire',r:{s:'star',n:5,min:2},aim:'enemy',e:[dmg(3),st('burn',3)],d:'距離2〜5の敵に3ダメージ、火傷3。'},
  // 補助
  guard:{n:'防御',c:1,t:'skill',icon:'checked-shield',r:{s:'self'},aim:'self',e:[block(6)],d:'ガード6を得る（次の自分の手番まで）。'},
  ward:{n:'魔力障壁',c:1,t:'skill',icon:'magic-shield',anim:'spell',r:{s:'self'},aim:'self',e:[block(5),{k:'draw',v:1}],d:'ガード5を得て、1枚引く。'},
@@ -64,13 +64,13 @@ const CARDS={
  formation:{n:'布陣',c:1,t:'skill',icon:'chess-rook',r:{s:'self'},aim:'self',e:[block(5),{k:'draw',v:1}],d:'ガード5を得て1枚引く。'},
  pincer:{n:'挟撃',c:1,t:'atk',icon:'pincers',anim:'weapon',r:{s:'line',n:5,min:2},aim:'enemy',e:[dmg(6),{k:'pull',v:5}],d:'直線5マスの敵に6ダメージ、目の前まで引き寄せる。'},
  shockwave:{n:'衝撃波',c:2,t:'atk',icon:'wave-strike',anim:'weapon',r:{s:'self'},aim:'self',a:'around',e:[dmg(4),{k:'push',v:3}],d:'周囲8マスに4ダメージ、外へ3マス押す。'},
- ignite:{n:'点火',c:1,t:'atk',icon:'burning-embers',anim:'spell',fx:'fire',r:{s:'dia',n:4},aim:'enemy',e:[dmg(2),st('burn',4)],d:'射程4の敵に2ダメージ、火傷4。'},
- flamejet:{n:'火炎放射',c:2,t:'atk',icon:'flame',anim:'spell',fx:'fire',r:{s:'line',n:4,pierce:1},aim:'any',a:'pierce',e:[dmg(6),st('burn',2)],d:'直線4マスを貫き6ダメージ、火傷2。'},
- scorch:{n:'焦土',c:2,t:'atk',icon:'fire-ring',anim:'spell',fx:'fire',r:{s:'dia',n:4},aim:'any',a:'plus',e:[dmg(4),{k:'setTile',t:'fire'}],d:'十字に4ダメージ。その範囲の地面を燃やす。'},
- phoenix:{n:'鳳凰',c:3,t:'atk',icon:'small-fire',anim:'spell',fx:'fire',r:{s:'dia',n:6,nolos:1},aim:'any',a:'sq',e:[dmg(9),st('burn',3)],d:'射程6（遮蔽無視）の3×3に9ダメージ、火傷3。'},
+ ignite:{el:'fire',n:'点火',c:1,t:'atk',icon:'burning-embers',anim:'spell',fx:'fire',r:{s:'dia',n:4},aim:'enemy',e:[dmg(2),st('burn',4)],d:'射程4の敵に2ダメージ、火傷4。'},
+ flamejet:{el:'fire',n:'火炎放射',c:2,t:'atk',icon:'flame',anim:'spell',fx:'fire',r:{s:'line',n:4,pierce:1},aim:'any',a:'pierce',e:[dmg(6),st('burn',2)],d:'直線4マスを貫き6ダメージ、火傷2。'},
+ scorch:{el:'fire',n:'焦土',c:2,t:'atk',icon:'fire-ring',anim:'spell',fx:'fire',r:{s:'dia',n:4},aim:'any',a:'plus',e:[dmg(4),{k:'setTile',t:'fire'}],d:'十字に4ダメージ。その範囲の地面を燃やす。'},
+ phoenix:{el:'fire',n:'鳳凰',c:3,t:'atk',icon:'small-fire',anim:'spell',fx:'fire',r:{s:'dia',n:6,nolos:1},aim:'any',a:'sq',e:[dmg(9),st('burn',3)],d:'射程6（遮蔽無視）の3×3に9ダメージ、火傷3。'},
  icewall:{n:'氷壁',c:1,t:'skill',icon:'ice-cube',anim:'spell',r:{s:'dia',n:3},aim:'empty',e:[{k:'setTile',t:'block'},block(3)],d:'空きマスに壁を作り、ガード3を得る。'},
- shatter:{n:'砕氷',c:1,t:'atk',icon:'ice-spear',anim:'spell',fx:'ice',r:{s:'dia',n:4},aim:'enemy',e:[dmg(5)],d:'射程4の敵に5ダメージ。'},
- blizzard:{n:'吹雪',c:3,t:'atk',icon:'snowing',anim:'spell',fx:'ice',r:{s:'dia',n:5,nolos:1},aim:'any',a:'sq',e:[dmg(7),st('root',1)],d:'射程5（遮蔽無視）の3×3に7ダメージ、拘束1。'},
+ shatter:{el:'ice',n:'砕氷',c:1,t:'atk',icon:'ice-spear',anim:'spell',fx:'ice',r:{s:'dia',n:4},aim:'enemy',e:[dmg(5)],d:'射程4の敵に5ダメージ。'},
+ blizzard:{el:'ice',n:'吹雪',c:3,t:'atk',icon:'snowing',anim:'spell',fx:'ice',r:{s:'dia',n:5,nolos:1},aim:'any',a:'sq',e:[dmg(7),st('root',1)],d:'射程5（遮蔽無視）の3×3に7ダメージ、拘束1。'},
  timewarp:{n:'時間歪曲',c:0,t:'skill',icon:'time-trap',anim:'spell',r:{s:'self'},aim:'self',e:[{k:'mana',v:2},{k:'draw',v:1}],once:1,d:'マナ+2、1枚引く。戦闘中1回。'},
  deadeye:{n:'心眼',c:2,t:'atk',icon:'eye-target',anim:'weapon',fx:'arrow',r:{s:'dia',n:6,min:3,nolos:1},aim:'enemy',e:[dmg(9)],d:'距離3〜6（遮蔽無視）の敵に9ダメージ。'},
  piercer:{n:'貫通矢',c:2,t:'atk',icon:'striking-arrows',anim:'weapon',fx:'arrow',r:{s:'line',n:8,pierce:1},aim:'any',a:'pierce',e:[dmg(8)],d:'縦横の直線8マスを貫き8ダメージ。'},
@@ -81,7 +81,7 @@ const CARDS={
  smokestep:{n:'煙渡り',c:0,t:'move',icon:'smoke-bomb',r:{s:'leap',n:3},aim:'empty',e:[{k:'moveTo',blink:1},block(3)],d:'3マス以内へ消えて現れ、ガード3を得る。'},
  net:{n:'投網',c:1,t:'atk',icon:'fishing-net',anim:'weapon',r:{s:'dia',n:4,nolos:1},aim:'any',a:'sq',e:[st('root',1)],d:'射程4の3×3に拘束1。'},
  // 固有システム
- flameblade:{n:'炎刃',c:1,t:'atk',icon:'flaming-claw',anim:'weapon',r:{s:'adj8'},aim:'enemy',e:[dmg(5),st('burn',2)],d:'周囲の敵に5ダメージ、火傷2。'},
+ flameblade:{el:'fire',n:'炎刃',c:1,t:'atk',icon:'flaming-claw',anim:'weapon',r:{s:'adj8'},aim:'enemy',e:[dmg(5),st('burn',2)],d:'周囲の敵に5ダメージ、火傷2。'},
  runeslash:{n:'符撃',c:1,t:'atk',icon:'rune-sword',anim:'spell',fx:'bolt',r:{s:'dia',n:3},aim:'enemy',e:[dmg(5)],d:'射程3の敵に5ダメージ（魔法）。'},
  arcstorm:{n:'魔剣乱舞',c:3,t:'atk',icon:'spinning-sword',anim:'weapon',r:{s:'self'},aim:'self',a:'around',e:[dmg(7),dmg(7),st('burn',2)],d:'周囲8マスに7の2回攻撃、火傷2。'},
  soar:{n:'飛翔',c:3,t:'skill',icon:'feathered-wing',anim:'weapon',r:{s:'leap',n:6},aim:'empty',e:[{k:'soar',v:8}],d:'空へ舞い上がり、次の手番の開始時に指定マスへ降下。周囲8マスに8ダメージ。空中では攻撃を受けない。降下した手番には使えない。'},
@@ -89,7 +89,7 @@ const CARDS={
  collideslam:{n:'叩きつけ',c:2,t:'atk',icon:'pummeled',anim:'weapon',r:{s:'adj'},aim:'enemy',e:[dmg(8),{k:'push',v:4}],d:'隣の敵に8ダメージ、4マス押す。'},
  brace:{n:'構え',c:0,t:'skill',icon:'spear-feather',r:{s:'self'},aim:'self',e:[block(3),{k:'over',v:1}],d:'ガード3。迎撃の回数+1。'},
  thousand:{n:'千本突き',c:3,t:'atk',icon:'stone-spear',anim:'weapon',r:{s:'line',n:3,pierce:1},aim:'any',a:'pierce',e:[dmg(6),dmg(6),dmg(6)],d:'直線3マスを貫き6の3回攻撃。'},
- deepfreeze:{n:'氷結',c:3,t:'atk',icon:'frozen-block',anim:'spell',fx:'ice',r:{s:'dia',n:4},aim:'enemy',e:[dmg(1),st('freeze',1)],d:'1ダメージ。凍結：敵は次の手番に何もできない。解けた直後とボスには拘束になる。'},
+ deepfreeze:{el:'ice',n:'氷結',c:3,t:'atk',icon:'frozen-block',anim:'spell',fx:'ice',r:{s:'dia',n:4},aim:'enemy',e:[dmg(1),st('freeze',1)],d:'1ダメージ。凍結：敵は次の手番に何もできない。解けた直後とボスには拘束になる。'},
  raise:{n:'骸骨召喚',c:2,t:'skill',icon:'raise-skeleton',anim:'spell',r:{s:'dia',n:3},aim:'empty',e:[{k:'summon',f:'skel'}],d:'空きマスに味方の骸骨兵を呼ぶ。最大2体。'},
  raisezombie:{n:'亡者召喚',c:1,t:'skill',icon:'raise-zombie',anim:'spell',r:{s:'dia',n:3},aim:'empty',e:[{k:'summon',f:'zombie'}],d:'空きマスに味方の亡者を呼ぶ。'},
  drain:{n:'魂吸い',c:1,t:'atk',icon:'life-tap',anim:'spell',fx:'dark',r:{s:'dia',n:4},aim:'enemy',e:[dmg(5),{k:'heal',v:4}],d:'射程4の敵に5ダメージ、HP4回復。'},
@@ -99,6 +99,7 @@ const CARDS={
  trapfire:{n:'火炎罠',c:1,t:'skill',icon:'fire-bomb',r:{s:'dia',n:4},aim:'empty',e:[{k:'trap',v:4,burn:3}],d:'空きマスに罠を置く。敵が止まると4ダメージ、火傷3、拘束1。'},
  ricochet:{n:'跳弾',c:1,t:'atk',icon:'bouncing-sword',anim:'weapon',fx:'arrow',r:{s:'star',n:5},aim:'enemy',e:[dmg(5)],d:'8方向5マスの敵に5ダメージ。'},
  stardrop:{n:'星落とし',c:3,t:'atk',icon:'falling-star',anim:'weapon',fx:'arrow',r:{s:'dia',n:7,nolos:1},aim:'enemy',e:[dmg(7),dmg(7)],d:'射程7（遮蔽無視）の敵に7の2回攻撃。'},
+ thunderclap:{el:'thunder',n:'雷撃',c:1,t:'atk',icon:'lightning-storm',anim:'spell',fx:'bolt',r:{s:'dia',n:4},aim:'enemy',e:[dmg(4)],d:'射程4の敵に4ダメージ。水辺の敵には感電が広がる。'},
  // 敵専用
  bite:{n:'噛みつき',c:1,t:'atk',icon:'fangs',anim:'weapon',r:{s:'adj'},aim:'enemy',e:[dmg(5),st('weak',1)],d:'5ダメージ。衰弱1。',foe:1},
  shamble:{n:'這いずり',c:1,t:'move',icon:'footprint',r:{s:'walk',n:2},aim:'empty',e:[{k:'moveTo'}],d:'2マス移動。',foe:1},
@@ -117,7 +118,7 @@ const CLASSES={
  bow:{n:'弓手',w:'w_bow',hp:36,icon:'high-shot',desc:'離れるほど強い。隣接されると撃てない。',deck:['shot','shot','shot','shot','guard','walk','walk','walk','sidestep','kickoff','pin','snipe']},
 };
 const REWARD=['sprint','leap','sidestep','knightstep','blink','shadow','slash','dashcut','sweep','cleave','hitrun','execute','thrust','impale','buttstrike','hookpull','vault','bolt','fireball','frost','meteor','chain','gust','shot','snipe','rain','pin','kickoff','fire_arrow','guard','ward','iron','focus','surge','rally','salve'];
-const CLASS_POOL={sword:['slash','dashcut','sweep','cleave','hitrun','execute','iron','rally','shadow','sprint','knightstep','focus','salve','buttstrike'],spear:['thrust','impale','buttstrike','hookpull','vault','leap','iron','rally','sprint','knightstep','focus','salve','shadow'],mage:['bolt','fireball','frost','meteor','chain','gust','ward','blink','focus','surge','salve','shadow','knightstep'],bow:['shot','snipe','rain','pin','kickoff','fire_arrow','sidestep','leap','sprint','focus','surge','salve','guard','shadow']};
+const CLASS_POOL={sword:['slash','dashcut','sweep','cleave','hitrun','execute','iron','rally','shadow','sprint','knightstep','focus','salve','buttstrike'],spear:['thrust','impale','buttstrike','hookpull','vault','leap','iron','rally','sprint','knightstep','focus','salve','shadow'],mage:['thunderclap','bolt','fireball','frost','meteor','chain','gust','ward','blink','focus','surge','salve','shadow','knightstep'],bow:['shot','snipe','rain','pin','kickoff','fire_arrow','sidestep','leap','sprint','focus','surge','salve','guard','shadow']};
 const FOES={
  goblin:{n:'ゴブリン',hp:13,hand:2,pref:1,deck:['stab','stab','stab','walk','walk','tiptoe'],look:{g:'male',skin:'green',head:'head_goblin',top:'top_short',topc:'brown',legc:'walnut',w:'w_sword'}},
  zombie:{n:'亡者',hp:22,hand:2,pref:1,deck:['bite','bite','shamble','shamble','shamble','stab'],look:{g:'male',body:'zombie',head:'head_zombie',top:'top_short',topc:'gray',legc:'charcoal'}},
@@ -143,6 +144,7 @@ const inb=(G,x,y)=>x>=0&&y>=0&&x<G.w&&y<G.h&&G.cells[y][x].t!=='void';
 const unitAt=(G,x,y)=>G.units.find(u=>!u.dead&&!u.air&&u.x===x&&u.y===y);
 const solid=(G,x,y)=>!inb(G,x,y)||G.cells[y][x].t==='block';
 const blocked=(G,x,y)=>!inb(G,x,y)||['block','water'].includes(G.cells[y][x].t);
+const TILE_INFO={fire:'燃える地面: ここで手番を終えると3ダメージ。氷の攻撃で消える',water:'水: 通れない。雷の攻撃は水辺の敵全員に広がる。氷の攻撃で凍る',ice:'氷: 通れる。ここにいる敵は押される距離+1。火の攻撃で水に戻る',oil:'油: 通れる。火の攻撃で爆発して連鎖する'};
 const free=(G,x,y)=>!blocked(G,x,y)&&!unitAt(G,x,y);
 const man=(a,b,c,d)=>Math.abs(a-c)+Math.abs(b-d);
 function los(G,x0,y0,x1,y1){ // 中心線が壁を通らないか
@@ -194,7 +196,7 @@ const HP_RATE=u=>(u.t&&u.t.hpCost)||0;
 function canPlay(G,u,c){if(u.air)return false;if(u.soarCd>0&&c.e.some(e=>e.k==='soar'))return false;const co=costOf(u,c);if(co>u.mana){const r=HP_RATE(u);if(!r||u.hp<=(co-u.mana)*r)return false}if(c.e.some(e=>e.k==='summon')&&G.units.filter(x=>x.summon&&!x.dead).length>=2+((u.t&&u.t.summonCap)||0))return false;if((c.t==='move'||c.move)&&u.status.root>0)return false;return true}
 function calcDmg(a,d,v,c){let n=v+(a.status.str||0);const T=a.t||{};if(T.lowAtk&&a.hp*2<a.maxHp)n+=T.lowAtk;if(a.nextAtk&&!(c&&isSpell(c)))n+=a.nextAtk;if(d.status.mark>0)n+=3;if(T.firstAtk&&!(a.flags&&a.flags.atked))n+=T.firstAtk;if(T.rootDmg&&(d.status.root>0||d.status.freeze>0))n+=T.rootDmg;if(T.distAtk&&man(a.x,a.y,d.x,d.y)>=4)n+=T.distAtk;if(T.aoeAtk&&c&&c.a)n+=T.aoeAtk;if(T.cornerAtk&&a._G&&DIRS4.some(([p,q])=>solid(a._G,d.x+p,d.y+q)))n+=T.cornerAtk;if(a.status.weak>0)n=Math.floor(n*.75);if(d.status.vuln>0)n=Math.floor(n*1.5);return Math.max(0,n)}
 function hurt(G,v,n,evs,src){const blk=Math.min(v.block,n);v.block-=blk;const hp=n-blk;v.hp-=hp;evs.push({t:'dmg',u:v.id,v:hp,blk,src});if(v.hp<=0&&!v.dead){v.hp=0;v.dead=true;evs.push({t:'die',u:v.id})}}
-function displace(G,v,dx,dy,n,evs,a){let x=v.x,y=v.y,moved=0,hit=false,other=null;const p=[[x,y]];for(let i=0;i<n;i++){const X=x+dx,Y=y+dy;if(!free(G,X,Y)){hit=true;other=unitAt(G,X,Y);break}x=X;y=Y;moved++;p.push([x,y])}
+function displace(G,v,dx,dy,n,evs,a){if(G.cells[v.y][v.x].t==='ice')n++;let x=v.x,y=v.y,moved=0,hit=false,other=null;const p=[[x,y]];for(let i=0;i<n;i++){const X=x+dx,Y=y+dy;if(!free(G,X,Y)){hit=true;other=unitAt(G,X,Y);break}x=X;y=Y;moved++;p.push([x,y])}
  v.x=x;v.y=y;if(moved)evs.push({t:'slide',u:v.id,p});if(hit&&!v.dead)hurt(G,v,3+((a&&a.t&&a.t.wallDmg)||0),evs,'wall');if(hit&&other&&a&&a.t&&a.t.collide&&foeOf(a,other)&&!other.dead)hurt(G,other,a.t.collide,evs,'wall');if(moved&&!v.dead)afterMove(G,v,evs)}
 function afterMove(G,v,evs){const tr=G.traps&&G.traps.findIndex(t=>t.x===v.x&&t.y===v.y&&t.side!==v.side);if(tr>=0){const t=G.traps.splice(tr,1)[0];evs.push({t:'trapHit',x:t.x,y:t.y});hurt(G,v,t.dmg,evs,'trap');if(!v.dead){v.status.root=(v.status.root||0)+1;evs.push({t:'status',u:v.id,s:'root',v:1});if(t.burn){v.status.burn=(v.status.burn||0)+t.burn;evs.push({t:'status',u:v.id,s:'burn',v:t.burn})}}}
  if(v.dead)return;for(const w of G.units){if(w.dead||w.air||!foeOf(w,v)||!(w.over>0)||!(w.t&&w.t.overwatch))continue;const dx=v.x-w.x,dy=v.y-w.y,d=Math.max(Math.abs(dx),Math.abs(dy));if(d<1||d>2||(dx&&dy)||!los(G,w.x,w.y,v.x,v.y))continue;w.over--;evs.push({t:'swing',u:w.id,x:v.x,y:v.y,anim:'weapon',card:'thrust',area:[{x:v.x,y:v.y}]});hurt(G,v,w.t.overwatch+(w.status.str||0),evs,'hit');if(v.dead)return}}
@@ -231,14 +233,23 @@ function play(G,u,idx,t){u._G=G;const id=u.hand[idx],c=CARDS[id],evs=[],T=u.t||{
   case'pull':for(const v of victims){if(v.dead)continue;let[dx,dy]=[Math.sign(u.x-v.x),Math.sign(u.y-v.y)];const n=Math.min(e.v,Math.max(Math.abs(u.x-v.x),Math.abs(u.y-v.y))-1);if(n>0)displace(G,v,dx,dy,n,evs)}break;
   case'retreat':{const foe=victims[0]||{x:t.x,y:t.y};const b=retreatTile(G,u,{x:foe.x,y:foe.y,n:e.v});if(b){const p=pathTo(G,u,e.v,b.x,b.y);F.moved=1;u.x=b.x;u.y=b.y;evs.push({t:'move',u:u.id,p});afterMove(G,u,evs)}break}
  }}
+ if(c.el)react(G,u,c,area,victims,evs);
  if(c.t==='atk'&&c.e.some(e=>e.k==='dmg'||e.k==='dmgBlock')){F.atked=1;if(!isSpell(c)||!T.combo)u.nextAtk=0;if(T.combo){if(isSpell(c)){u.nextAtk=T.combo;F.freeSpell=0}else F.freeSpell=1}if(T.atkGuard){u.block+=T.atkGuard;evs.push({t:'block',u:u.id,v:T.atkGuard})}}
  const kills=G.units.filter(x=>x.dead&&!deadBefore.has(x.id)&&foeOf(u,x)).length;
  if(kills&&!u.dead){if(T.killMana){u.mana+=T.killMana*kills;evs.push({t:'mana',u:u.id,v:T.killMana*kills})}if(T.killDraw)drawN(G,u,T.killDraw*kills,evs);if(T.killHeal){const n=Math.min(T.killHeal*kills,u.maxHp-u.hp);if(n>0){u.hp+=n;evs.push({t:'heal',u:u.id,v:n})}}}
  return evs}
 function bounce(G,a,v,amt,n,evs){let cur=v,hit=new Set([v.id]),d=Math.floor(amt/2);for(let i=0;i<n&&d>0;i++){const nx=G.units.filter(x=>!x.dead&&!x.air&&foeOf(a,x)&&!hit.has(x.id)&&man(x.x,x.y,cur.x,cur.y)<=3).sort((p,q)=>man(p.x,p.y,cur.x,cur.y)-man(q.x,q.y,cur.x,cur.y))[0];if(!nx){if(!cur.dead){evs.push({t:'bounce',from:cur.id,u:cur.id});hurt(G,cur,d,evs,'hit');d=Math.floor(d/2);continue}break}hit.add(nx.id);evs.push({t:'bounce',from:cur.id,u:nx.id});hurt(G,nx,d,evs,'hit');cur=nx;d=Math.floor(d/2)}}
+function react(G,u,c,area,victims,evs){let changed=false;const at=(x,y)=>G.cells[y][x];
+ if(c.el==='ice')for(const p of area){const C=at(p.x,p.y);if(C.t==='water'){C.t='ice';changed=true}else if(C.t==='fire'){C.t='floor';changed=true}}
+ if(c.el==='fire'){const seen=new Set,stack=area.filter(p=>at(p.x,p.y).t==='oil').map(p=>[p.x,p.y]),hurtSet=new Set;for(const p of area){const C=at(p.x,p.y);if(C.t==='ice'&&!unitAt(G,p.x,p.y)){C.t='water';changed=true}}
+  while(stack.length){const[x,y]=stack.pop(),k=x+','+y;if(seen.has(k))continue;seen.add(k);at(x,y).t='fire';changed=true;evs.push({t:'blast',x,y});for(const[dx,dy]of DIRS8){const X=x+dx,Y=y+dy;if(!inb(G,X,Y))continue;if(at(X,Y).t==='oil')stack.push([X,Y])}for(const[dx,dy]of[[0,0],...DIRS8]){const v=unitAt(G,x+dx,y+dy);if(v&&foeOf(u,v))hurtSet.add(v.id)}}
+  for(const id of hurtSet){const v=G.units[id];if(!v.dead)hurt(G,v,5,evs,'blast')}}
+ if(c.el==='thunder'){const wetNear=v=>DIRS8.map(([p,q])=>[v.x+p,v.y+q]).filter(([x,y])=>inb(G,x,y)&&at(x,y).t==='water');const wet=new Set;for(const v of victims)if(!v.dead)for(const[x,y]of wetNear(v)){const st=[[x,y]];while(st.length){const[a,b]=st.pop(),k=a+','+b;if(wet.has(k))continue;wet.add(k);for(const[p,q]of DIRS4)if(inb(G,a+p,b+q)&&at(a+p,b+q).t==='water')st.push([a+p,b+q])}}
+  if(wet.size)for(const v of G.units){if(v.dead||v.air||!foeOf(u,v)||victims.includes(v))continue;if(wetNear(v).some(([x,y])=>wet.has(x+','+y))){evs.push({t:'bounce',from:u.id,u:v.id});hurt(G,v,4,evs,'shock')}}}
+ if(changed)evs.push({t:'terrain'})}
 function thorn(G,a,v,evs){const n=v.t&&v.t.thorns;if(n&&!a.dead&&!v.dead&&Math.max(Math.abs(a.x-v.x),Math.abs(a.y-v.y))<=1)hurt(G,a,n,evs,'thorn')}
 function startTurn(G,u){const evs=[];const T0=u.t||{};u.block=T0.retainGuard?Math.min(u.block,T0.retainGuard):0;u.flags={};u.over=0;if(u.air){const a=u.air;u.air=null;u.soarCd=1;let dest=null;if(free(G,a.x,a.y))dest=a;else for(const[dx,dy]of DIRS8)if(free(G,a.x+dx,a.y+dy)){dest={x:a.x+dx,y:a.y+dy};break}if(!dest)dest={x:u.x,y:u.y};const p=[[u.x,u.y],[dest.x,dest.y]];u.x=dest.x;u.y=dest.y;evs.push({t:'move',u:u.id,p,jump:1});const near=DIRS8.map(([q,r])=>unitAt(G,dest.x+q,dest.y+r)).filter(v=>v&&foeOf(u,v));evs.push({t:'swing',u:u.id,x:dest.x,y:dest.y,anim:'weapon',card:'slash',area:DIRS8.map(([q,r])=>({x:dest.x+q,y:dest.y+r})).filter(t=>inb(G,t.x,t.y)&&!solid(G,t.x,t.y))});for(const v of near)hurt(G,v,a.dmg+(u.status.str||0),evs,'hit');afterMove(G,u,evs)}u.mana=u.maxMana+(u.manaNext||0);u.manaNext=0;let extra=0;if(!u.opened){u.opened=1;u.block+=u.startBlock||0;u.mana+=u.mana1||0;extra=u.firstDraw||0}if(u.status.burn>0){if(u.spread)for(const[dx,dy]of DIRS4){const o=unitAt(G,u.x+dx,u.y+dy);if(o&&o.side===u.side&&!o.dead){o.status.burn=(o.status.burn||0)+1;o.spread=1;evs.push({t:'status',u:o.id,s:'burn',v:1})}}hurt(G,u,u.status.burn,evs,'burn');u.status.burn--}drawN(G,u,Math.max(0,u.handSize+extra-u.hand.length),evs);return evs}
-function endTurn(G,u){const evs=[];if(u.t&&u.t.overwatch&&!u.dead&&!u.air)u.over=(u.over||0)+u.mana+(u.t.overPlus||0);if(u.t&&u.t.stillMana&&!(u.flags&&u.flags.moved))u.manaNext=u.t.stillMana;if(u.t&&u.t.endGuard&&u.mana>0&&!u.dead){const g=u.t.endGuard*Math.min(3,u.mana);u.block+=g;evs.push({t:'block',u:u.id,v:g})}u.discard.push(...u.hand);u.hand=[];if(u.frzCd>0)u.frzCd--;if(u.soarCd>0)u.soarCd--;for(const s of['root','weak','vuln','mark'])if(u.status[s]>0)u.status[s]--;if(!u.dead&&!u.air&&G.cells[u.y][u.x].t==='fire'&&!(u.t&&u.t.fireSafe))hurt(G,u,3,evs,'fire');return evs}
+function endTurn(G,u){const evs=[];if(u.t&&u.t.overwatch&&!u.dead&&!u.air)u.over=(u.over||0)+u.mana+(u.t.overPlus||0);if(u.t&&u.t.stillMana&&!(u.flags&&u.flags.moved))u.manaNext=u.t.stillMana;if(u.t&&u.t.endGuard&&u.mana>0&&!u.dead){const g=u.t.endGuard*Math.min(3,u.mana);u.block+=g;evs.push({t:'block',u:u.id,v:g})}u.discard.push(...u.hand);u.hand=[];if(u.preDraw&&!u.dead)drawN(G,u,u.handSize);if(u.frzCd>0)u.frzCd--;if(u.soarCd>0)u.soarCd--;for(const s of['root','weak','vuln','mark'])if(u.status[s]>0)u.status[s]--;if(!u.dead&&!u.air&&G.cells[u.y][u.x].t==='fire'&&!(u.t&&u.t.fireSafe))hurt(G,u,3,evs,'fire');return evs}
 function makeUnit(id,side,o){const u={id,side,x:0,y:0,hp:o.hp,maxHp:o.maxHp||o.hp,mana:3,maxMana:3,block:0,status:{},hand:[],discard:[],draw:[],exhaust:[],handSize:o.hand||5,deck:o.deck.slice(),name:o.n,look:o.look,pref:o.pref||1,boss:o.boss,kind:o.kind};return u}
 function genMap(stage,R){const{w,h,theme}=stage;for(let tries=0;tries<300;tries++){const cells=[];for(let y=0;y<h;y++){const r=[];for(let x=0;x<w;x++)r.push({t:'floor',v:R()});cells.push(r)}
  const G={w,h,cells,theme,units:[]};
@@ -246,6 +257,7 @@ function genMap(stage,R){const{w,h,theme}=stage;for(let tries=0;tries<300;tries+
  if(w*h>=80){const cut=1+Math.floor(R()*2);for(const[cx,cy]of[[0,0],[w-1,0],[0,h-1],[w-1,h-1]]){if(R()<.65)for(let a=0;a<cut;a++)for(let b=0;b<cut-a;b++){cells[Math.abs(cy-b)][Math.abs(cx-a)].t='void'}}}
  const liquid={forest:'water',grave:'water',snow:'water',ash:'fire'}[theme],blobs=Math.round(w*h/40);
  for(let i=0;i<blobs;i++){let x=1+Math.floor(R()*(w-2)),y=2+Math.floor(R()*(h-4)),L=4+Math.floor(R()*6);while(L-->0){for(const[p,q]of[[0,0],[1,0],[0,1],[1,1]])if(inb(G,x+p,y+q)&&y+q<h-1)cells[y+q][x+p].t=liquid;const[d,e]=DIRS4[Math.floor(R()*4)];x+=d;y+=e}}
+ if(theme==='grave'||theme==='ash'||R()<.4){const n=1+Math.floor(R()*2);for(let i=0;i<n;i++){let x=1+Math.floor(R()*(w-2)),y=3+Math.floor(R()*Math.max(1,h-5)),L=3+Math.floor(R()*3);while(L-->0){if(inb(G,x,y)&&cells[y][x].t==='floor')cells[y][x].t='oil';const[d,e]=DIRS4[Math.floor(R()*4)];x+=d;y+=e}}}
  const nb=Math.round(w*h*.11);for(let i=0;i<nb;i++){const x=Math.floor(R()*w),y=1+Math.floor(R()*(h-2));if(inb(G,x,y)&&cells[y][x].t==='floor')cells[y][x].t='block'}
  const px=Math.floor(w/2),py=h-1;let pSpot=null;for(let d=0;d<w&&!pSpot;d++)for(const x of[px-d,px+d])for(let y=h-1;y>=h-2;y--)if(!pSpot&&inb(G,x,y)&&cells[y][x].t==='floor')pSpot={x,y};
  if(!pSpot)continue;
@@ -259,13 +271,15 @@ function genMap(stage,R){const{w,h,theme}=stage;for(let tries=0;tries<300;tries+
 function heroUnit(id,side,run,x,y,R){const p=makeUnit(id,side,{n:run.name,hp:run.hp,maxHp:run.maxHp,deck:run.deck,hand:5,look:run.look,kind:'hero',pref:run.pref});const b=run.bonus||{};if(b.atk)p.status.str=b.atk;p.startBlock=b.guard||0;p.firstDraw=b.draw||0;p.walkBonus=b.walk||0;p.mana1=b.mana1||0;p.t=b.traits||{};p.x=x;p.y=y;p.facing=1;p.draw=shuffle(p.deck.slice(),R);const top=p.draw.length-1;if(!p.draw.slice(-5).some(i=>CARDS[i].t==='move')){const j=p.draw.findIndex(i=>CARDS[i].t==='move');if(j>=0)[p.draw[j],p.draw[top]]=[p.draw[top],p.draw[j]]}return p}
 function setupBattle(stageIdx,hero,seed){const R=mulberry(seed),s=STAGES[stageIdx],G=genMap(s,R);G.R=R;G.stage=stageIdx;G.turn=1;
  hero.deck.forEach(ensureCard);const p=heroUnit(0,'hero',hero,G.pSpot.x,G.pSpot.y,R);G.units.push(p);
- s.foes.forEach((f,i)=>{const d=FOES[f],df=hero.diff||0,u=makeUnit(i+1,'foe',{...d,hp:Math.round(d.hp*(1+df*.3)),kind:f});if(df)u.status.str=df;[u.x,u.y]=G.fSpots[i];u.facing=0;u.draw=shuffle(u.deck.slice(),R);G.units.push(u)});return G}
+ s.foes.forEach((f,i)=>{const d=FOES[f],df=hero.diff||0,u=makeUnit(i+1,'foe',{...d,hp:Math.round(d.hp*(1+df*.3)),kind:f});if(df)u.status.str=df;[u.x,u.y]=G.fSpots[i];u.facing=0;u.draw=shuffle(u.deck.slice(),R);u.preDraw=1;drawN(G,u,u.handSize);G.units.push(u)});return G}
 const alive=(G,side)=>G.units.filter(u=>!u.dead&&u.side===side);
 function skipsTurn(u){if(u.status.freeze>0){u.status.freeze--;u.frzCd=3;return true}return false}
 const outcome=G=>G.units[0].dead?'lose':!alive(G,'foe').length?'win':null;
 // AI ------------------------------------------------
 function estHit(G,u,c,t){let sum=0,kill=0;for(const p of areaTiles(G,u,c,t)){const v=unitAt(G,p.x,p.y);if(!v)continue;if(!foeOf(u,v))continue;let hit=0;for(const e of c.e){if(e.k==='dmg')hit+=calcDmg(u,v,e.v,c);if(e.k==='dmgBlock')hit+=calcDmg(u,v,Math.floor(u.block/2)+e.v,c)}const eff=Math.max(0,hit-v.block);sum+=eff+(c.e.some(e=>e.k==='status')?2:0);if(c.e.some(e=>e.k==='status'&&e.s==='freeze')&&!v.boss&&!(v.frzCd>0))sum+=14;const pu=c.e.find(e=>e.k==='push');if(pu){const dx=Math.sign(v.x-u.x),dy=Math.sign(v.y-u.y),T=u.t||{};let x=v.x,y=v.y,hit=false,other=null;for(let i=0;i<pu.v+(T.pushExtra||0);i++){if(!free(G,x+dx,y+dy)){hit=true;other=unitAt(G,x+dx,y+dy);break}x+=dx;y+=dy}if(hit)sum+=3+(T.wallDmg||0);if(other&&T.collide&&foeOf(u,other))sum+=T.collide}if(eff>=v.hp)kill++}return{sum,kill}}
 function canHitFrom(G,u,x,y,ids,mana){const ox=u.x,oy=u.y;u.x=x;u.y=y;let best=0;for(const id of ids){const c=CARDS[id];if(costOf(u,c)>mana||c.t!=='atk')continue;for(const t of targets(G,u,c)){const r=estHit(G,u,c,t);if(r.sum>best)best=r.sum}}u.x=ox;u.y=oy;return best}
+// 次の手番で相手が届くマスと、最大ダメージ
+function threatMap(G,u){if(u.dead||u.air||!u.hand.length)return new Map;const str=u.status.str||0,atk=u.hand.map(id=>CARDS[id]).filter(c=>c.t==='atk'&&c.e.some(e=>e.k==='dmg'||e.k==='dmgBlock')),mv=u.status.root>0?[]:u.hand.map(id=>CARDS[id]).filter(c=>c.t==='move'||c.e.some(e=>e.k==='moveTo')&&c.t!=='atk');const pos=[{x:u.x,y:u.y,m:u.maxMana}];for(const c of mv)for(const t of targets(G,u,c))if(c.c<=u.maxMana)pos.push({x:t.x,y:t.y,m:u.maxMana-c.c});const ox=u.x,oy=u.y,out=new Map;for(const p of pos){u.x=p.x;u.y=p.y;const per=new Map;for(const c of atk){if(c.c>p.m)continue;const hits=c.e.filter(e=>e.k==='dmg').length||1,d=c.e.reduce((a,e)=>a+(e.k==='dmg'?e.v:e.k==='dmgBlock'?e.v:0),0)+str*hits,seen=new Set;for(const t of rangeTiles(G,u,c))for(const a of areaTiles(G,u,c,t)){const k=a.x+','+a.y;if(seen.has(k))continue;seen.add(k);if(!per.has(k))per.set(k,[]);per.get(k).push([c.c,d])}}for(const[k,l]of per){l.sort((a,b)=>b[1]/(b[0]||.5)-a[1]/(a[0]||.5));let m=p.m,sum=0;for(const[co,d]of l)if(co<=m){m-=co;sum+=d}if(sum>(out.get(k)||0))out.set(k,sum)}}u.x=ox;u.y=oy;return out}
 function chooseAI(G,u){if(u.air)return null;const foes=alive(G,u.side==='foe'?'hero':'foe').filter(f=>!f.air);if(!foes.length)return null;const gap=(x,y)=>Math.min(...foes.map(f=>{const d=Math.max(Math.abs(x-f.x),Math.abs(y-f.y));return Math.abs(d-u.pref)+(d<u.pref?1:0)}));let best=null,bs=0;const curHit=canHitFrom(G,u,u.x,u.y,u.hand,u.mana);
  u.hand.forEach((id,i)=>{const c=CARDS[id];if(!canPlay(G,u,c)||(costOf(u,c)>u.mana&&u.hp<u.maxHp*.6)||false)return;const rest=u.hand.filter((_,j)=>j!==i);
   for(const t of targets(G,u,c)){let s=0;if(c.e.some(e=>e.k==='soar')){const adj=foes.filter(f=>Math.max(Math.abs(f.x-t.x),Math.abs(f.y-t.y))===1).length;if(!adj)continue;s=(curHit===0||u.hp<u.maxHp*.5)?10+adj*6:2;s+=G.R()*.2;if(s>bs){bs=s;best={i,t}}continue}if(c.e.some(e=>e.k==='trap')){const d=Math.min(...foes.map(f=>man(f.x,f.y,t.x,t.y)));if(d<1||d>2||(G.traps||[]).some(p=>man(p.x,p.y,t.x,t.y)<2))continue;s=7-d+G.R()*.2;if(curHit>=8)s=1;if(s>bs){bs=s;best={i,t}}continue}
@@ -392,7 +406,7 @@ function buildCode(h){return{v:1,n:h.name,c:h.cls,l:h.look,lv:h.level,t:h.tree,e
 function fromCode(o){if(!o||o.v!==1||!CLASSES[o.c]||!o.l||!Array.isArray(o.d))throw new Error('bad');const h={id:'rival',name:String(o.n||'挑戦者').slice(0,10),cls:o.c,look:o.l,level:Math.min(LEVEL_CAP,Math.max(1,o.lv|0)),xp:0,tree:{},equip:{weapon:STARTER[o.c],armor:'',off:'',charm:''},inv:[],cards:{},ench:{},runes:[]};for(const k in o.t||{})if(NODE[k]&&NODE[k].id.startsWith(o.c+'.'))h.tree[k]=Math.min(NODE[k].max,o.t[k]|0);for(const k of['weapon','armor','off','charm'])if(o.e&&ITEMS[o.e[k]]&&ITEMS[o.e[k]].slot===k)h.equip[k]=o.e[k];fixEquip(h);h.deck=o.d.filter(id=>CARDS[id]&&!CARDS[id].foe).slice(0,DECK_MAX);if(h.deck.length<DECK_MIN)throw new Error('bad');for(const k in o.en||{})if(CARDS[k]&&RUNES[o.en[k]]&&RUNES[o.en[k]].ok(CARDS[k]))h.ench[k]=o.en[k];return h}
 function duelRun(h){const r=newRun(h,1),lvHp=(LEVEL_CAP-h.level)*2;r.hp+=lvHp;r.maxHp+=lvHp;return r}
 const DUEL_THEMES=['forest','grave','snow','ash'],DUEL_TURNS=30;
-function setupDuel(a,b,seed){const R0=mulberry(seed),s={n:'模擬戦',theme:DUEL_THEMES[Math.floor(R0()*4)],w:10,h:10,foes:['x']},G=genMap(s,R0);G.R=R0;G.stage=-1;G.turn=1;G.duel=true;[...a.deck,...b.deck].forEach(ensureCard);G.units.push(heroUnit(0,'hero',a,G.pSpot.x,G.pSpot.y,R0));const[fx,fy]=G.fSpots[0],f=heroUnit(1,'foe',b,fx,fy,R0);f.firstDraw+=1;G.units.push(f);return G}
+function setupDuel(a,b,seed){const R0=mulberry(seed),s={n:'模擬戦',theme:DUEL_THEMES[Math.floor(R0()*4)],w:10,h:10,foes:['x']},G=genMap(s,R0);G.R=R0;G.stage=-1;G.turn=1;G.duel=true;[...a.deck,...b.deck].forEach(ensureCard);G.units.push(heroUnit(0,'hero',a,G.pSpot.x,G.pSpot.y,R0));const[fx,fy]=G.fSpots[0],f=heroUnit(1,'foe',b,fx,fy,R0);f.firstDraw+=1;f.preDraw=1;drawN(G,f,f.handSize);G.units.push(f);return G}
 function duelResult(G){const o=outcome(G);if(o)return o;if(G.turn<=DUEL_TURNS)return null;const a=G.units[0],b=G.units[1],p=a.hp/a.maxHp,q=b.hp/b.maxHp;return p>q?'win':p<q?'lose':'draw'}
 function newRun(h,seed){const s=heroStats(h),k=CLASSES[h.cls];const known=TREES[h.cls].filter(n=>n.card&&(h.tree||{})[n.id]).map(n=>n.card);return{extraPool:known,heroId:h.id,pref:{sword:1,spear:2,mage:3,bow:3}[h.cls],name:h.name,cls:h.cls,hp:s.maxHp,maxHp:s.maxHp,bonus:s.bonus,deck:h.deck?runDeck(h):[...k.deck,...s.cards],look:heroLook(h),diff:h.diff||0,stage:0,seed:seed||(Date.now()&0xffffff)}}
-if(typeof module!=='undefined')module.exports={CARDS,CLASSES,FOES,STAGES,REWARD,CLASS_POOL,setupBattle,chooseAI,play,targets,startTurn,endTurn,outcome,alive,newRun,canPlay,mulberry,shuffle,areaTiles,ITEMS,newHero,heroStats,gainXp,stageXp,rollDrop,rollRune,perkLeft,RUNES,ensureCard,runeSlots,initBuild,trimDeck,deckIssues,runDeck,switchBuild,availCount,addGranted,buildCode,fromCode,duelRun,setupDuel,duelResult,DUEL_TURNS,activeSets,SETS,ITEM_SET,DECK_MIN,DECK_MAX,COPY_MAX,baseCard,TREES,NODE,JOBS,canLearn,learn,forget,canForget,jobLine,jobName,costOf,calcDmg,skipsTurn};
+if(typeof module!=='undefined')module.exports={CARDS,CLASSES,FOES,STAGES,REWARD,CLASS_POOL,setupBattle,chooseAI,play,targets,startTurn,endTurn,outcome,alive,newRun,canPlay,mulberry,shuffle,areaTiles,ITEMS,newHero,heroStats,gainXp,stageXp,rollDrop,rollRune,perkLeft,RUNES,ensureCard,runeSlots,initBuild,trimDeck,deckIssues,runDeck,switchBuild,availCount,addGranted,buildCode,fromCode,duelRun,setupDuel,duelResult,DUEL_TURNS,activeSets,SETS,ITEM_SET,DECK_MIN,DECK_MAX,COPY_MAX,baseCard,TREES,NODE,JOBS,canLearn,learn,forget,canForget,jobLine,jobName,costOf,calcDmg,skipsTurn,threatMap};

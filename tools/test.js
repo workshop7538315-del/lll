@@ -20,7 +20,7 @@ a=arena({atkGuard:2},[[3,2]]);P(a,'slash',{x:3,y:2});ok(a.u.block===2,'atkGuard'
 a=arena({},[[3,2]]);a.f.t={thorns:4};P(a,'slash',{x:3,y:2});ok(a.u.hp===26,'thorns');
 a=arena({},[[3,2]]);a.u.block=10;P(a,'shieldbash',{x:3,y:2});ok(a.f.hp===50-8,'shieldbash');
 a=arena({},[[3,2]]);P(a,'bloodhit',{x:3,y:2});ok(a.u.hp===27&&a.f.hp===42,'bloodhit');
-a=arena({},[[3,0],[2,0]]);const ev=P(a,'dive',{x:3,y:1});ok(a.u.y===1&&a.f.hp===44&&a.G.units[2].hp===44,'dive');ok(ev.some(e=>e.t==='swing'),'dive anim');
+a=arena({},[[3,0],[2,0]]);const ev=P(a,'dive',{x:3,y:1});ok(a.u.y===1&&a.f.hp===45&&a.G.units[2].hp===45,'dive');ok(ev.some(e=>e.t==='swing'),'dive anim');
 a=arena({});P(a,'scorch',{x:3,y:1});ok(a.G.cells[1][3].t==='fire'&&a.G.cells[1][2].t==='fire','scorch');
 a=arena({});P(a,'icewall',{x:2,y:2});ok(a.G.cells[2][2].t==='block'&&a.u.block===3,'icewall');
 a=arena({},[[3,1]]);P(a,"pincer",{x:3,y:1});ok(a.f.y===2,'pincer');
@@ -53,6 +53,13 @@ for(const [k,t] of Object.entries(R.TREES)){const ids=new Set(t.map(n=>n.id));co
 }
 a=arena({});P(a,'deepfreeze',{x:3,y:1});R.skipsTurn(a.f);R.endTurn(a.G,a.f);a.u.mana=3;P(a,'deepfreeze',{x:3,y:1});ok(!a.f.status.freeze&&a.f.status.root===1,'連続凍結不可');
 a=arena({cornerAtk:2},[[3,1]]);a.G.cells[0][3].t='block';P(a,'bolt',{x:3,y:1});ok(a.f.hp===44,'壁際');
+{const G0=R.setupBattle(0,R.newRun(R.newHero(1,'x','sword',{}),5),5);const f=G0.units[1];ok(f.hand.length===f.handSize,'敵は先に手札を持つ');const before=f.hand.slice();R.startTurn(G0,f);ok(f.hand.join()===before.join(),'予告した手札のまま');R.endTurn(G0,f);ok(f.hand.length===f.handSize,'次の手札を予告');
+ const a3=arena({},[[3,1]]);a3.f.hand=['slash','walk'];const m3=R.threatMap(a3.G,a3.f);ok(m3.get('3,2')===6,'隣接の脅威');ok(m3.get('3,3')>=6,'移動込みの脅威');a3.f.status.root=1;const m4=R.threatMap(a3.G,a3.f);ok(!m4.get('3,5'),'拘束中は移動なし')}
+a=arena({});a.G.cells[1][3].t='water';a.f.y=2;P(a,'frost',{x:3,y:2});ok(a.G.cells[1][3].t==='water','単体の氷は対象マスのみ');a=arena({});a.G.cells[1][3].t='water';P(a,'blizzard',{x:3,y:0});ok(a.G.cells[1][3].t==='ice','水が凍る');ok(!R.targets(a.G,a.u,R.CARDS.tiptoe).some(t=>t.x===9),'');
+a=arena({});a.G.cells[1][2].t='ice';a.G.cells[1][3].t='fire';P(a,'blizzard',{x:3,y:1});ok(a.G.cells[1][3].t==='floor','氷で消火');P(a,'fireball',{x:2,y:1});ok(a.G.cells[1][2].t==='water','火で溶ける');
+a=arena({},[[3,1],[5,1]]);a.G.cells[1][4].t='oil';a.G.cells[2][4].t='oil';P(a,'fireball',{x:4,y:2});ok(a.G.cells[1][4].t==='fire'&&a.G.cells[2][4].t==='fire','油の連鎖');ok(a.G.units[2].hp===45,'爆発');
+a=arena({},[[3,1],[3,5]]);for(const y of[1,2,3,4,5])a.G.cells[y][4].t='water';P(a,'thunderclap',{x:3,y:1});ok(a.f.hp===46&&a.G.units[2].hp===46,'感電');
+a=arena({},[[3,1]]);a.u.y=2;a.G.cells[1][3].t='ice';P(a,'buttstrike',{x:3,y:1});ok(a.f.y===0&&a.f.hp===44,'氷で滑る')||0;
 // デッキ、刻印、ビルド、対戦
 {const h=R.newHero(1,'x','sword',{});ok(R.deckIssues(h).length===0,'初期デッキ有効');ok(h.deck.length===12,'初期枚数');
  h.ench.slash='heavy';ok(R.runDeck(h).filter(x=>x==='slash~heavy').length===4,'刻印反映');ok(R.CARDS['slash~heavy'].e[0].v===8&&R.CARDS.slash.e[0].v===6,'刻印が元を変えない');
