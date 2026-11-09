@@ -17,4 +17,5 @@ html = ('<!doctype html><html lang="ja"><head><meta charset="utf-8">'
         '<style>body{margin:0}[hidden]{display:none!important}</style></head><body>' + body + '</body></html>\n')
 os.makedirs(os.path.join(R, 'dist'), exist_ok=True)
 open(os.path.join(R, 'dist/index.html'), 'w', encoding='utf-8').write(html)
+open(os.path.join(R, 'dist/artifact.html'), 'w', encoding='utf-8').write(body)
 print(f'dist/index.html {len(html)/1e6:.2f} MB')

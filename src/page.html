@@ -4,7 +4,7 @@
 <style>
 /* 夕暮れの作戦卓: 濃紺の卓に羊皮紙のカードと木枠を置く */
 :root{color-scheme:dark;--ink:#16151f;--table:#23212e;--line:#4a4258;--paper:#f8eccb;--paper-ink:#3d2a19;--gold:#f0c060;--mana:#2a8fd0;--move:#6fd98a;--hurt:#ef6a5b;--muted:#a9a2b8;--font:"DotGothic16","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
-html,body{height:100%}body{background:var(--ink);color:#f1ecdf;font-family:var(--font);overflow:hidden;font-size:15px}
+html,body{height:100%}body{background:var(--ink);color:#f1ecdf;font-family:var(--font);overflow:hidden;font-size:15px;overscroll-behavior:none}
 #app{height:100%;padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));box-sizing:border-box}
 *{box-sizing:border-box}h1,h2,h3{margin:0;font-weight:400;text-wrap:balance}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}button:focus-visible,input:focus-visible,.card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
@@ -51,7 +51,48 @@ input[type=text]{font:inherit;padding:7px;background:#0005;border:1px solid var(
 .gridc{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:12px}.foot{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.credit{font-size:13px;line-height:1.7;overflow-wrap:anywhere}.credit a{color:#2a71a3}
 .rw{display:grid;gap:14px;align-content:center;min-height:100%;justify-items:center;text-align:center}.rw h2{font-size:32px;color:var(--gold)}
 .topline{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;gap:8px}
-@media(max-width:860px){body{overflow:auto}#app{height:auto;min-height:100%}.make{grid-template-columns:minmax(0,1fr);height:auto}.classes{grid-template-columns:repeat(2,minmax(0,1fr))}.battle{height:auto;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none}.boardwrap{grid-column:1/-1;grid-row:1}.side{max-height:190px}.log{display:none}.hand{grid-column:1/-1;flex-direction:column;align-items:stretch}.cards{justify-content:flex-start}}
+#info,.tabs,.gtxt{display:none}
+@media (max-width:860px) and (orientation:portrait),(max-height:520px) and (orientation:landscape){
+#app{padding-block:4px}
+.btn{min-height:34px;border-width:9px;border-image-width:9px;font-size:13px;padding:0 3px;white-space:nowrap}
+.chip{padding:3px 7px;min-height:28px;font-size:12px}
+.battle{gap:4px 8px}.battle .side{display:contents}#log,.sp{display:none}
+#hhud{grid-area:hud;border:0;border-image:none;background:#2c2a38;color:#fff;padding:4px;display:grid;grid-template-columns:34px minmax(0,1fr);gap:2px 6px;align-items:center}
+#hhud>.hd{display:contents!important}#hhud .name,#hhud .bar.bl{display:none}#hhud #pf{width:34px!important;height:34px!important;grid-row:1/3}
+.bar{height:12px}.bar span{font-size:10px;line-height:10px}.manas{gap:2px;flex-wrap:nowrap;min-width:0}.gem{width:17px;height:21px}.gem.on::after{inset:5px 3px}.manas>span{font-size:12px!important;color:#9fd8ff!important}.gtxt{display:inline;font-size:11px;color:#dfe8f2;white-space:nowrap}.manas .stat{flex-wrap:nowrap}
+.st{font-size:10px;padding:0 2px}.st svg{width:10px;height:10px}
+.topline{grid-area:top;font-size:11px;flex-direction:column;gap:0;text-align:right;line-height:1.25}.bm{grid-area:bm;flex-wrap:nowrap;gap:4px;justify-content:flex-end}
+#foes{grid-area:foes;display:flex!important;gap:3px;overflow:hidden!important}.foe{flex:1 1 0;min-width:0;gap:3px;padding:2px}.foe canvas{width:26px;height:26px}.foe>div>span:first-child{display:none}.foe .bar{height:11px}.foe .stat{flex-wrap:nowrap;overflow:hidden;min-height:12px}
+.boardwrap{grid-area:board}.hand{grid-area:hand;flex-direction:column;align-items:stretch;gap:2px;min-height:0}
+.ctl{order:-1;display:flex!important;align-items:center;gap:4px;min-width:0}.ctl .piles{flex:none;gap:3px;font-size:10px}.ctl .piles button{padding:2px 3px;min-height:34px;line-height:1.1}
+#info{display:block;flex:1;min-width:0;height:42px;overflow:hidden;font-size:11px;line-height:14px;color:#f1ecdf}
+.battle .cards{justify-content:stretch;overflow:visible;padding:11px 1px 0 8px;gap:3px;min-height:0}
+.battle .card{flex:1 1 0;min-width:0;height:108px;border-width:6px;border-image-width:6px;align-items:center;justify-content:flex-start;gap:1px}
+.battle .card:hover{transform:none}.battle .card.sel{transform:translateY(-6px)}
+.battle .card .tx{display:none}.battle .card .nm{font-size:10.5px;line-height:1.1;padding-left:10px;min-height:23px;align-self:flex-start}.battle .card .mid,.modal .card .mid{flex-direction:column;gap:1px}.battle .card svg{width:21px;height:21px}
+.card .cost{left:-10px;top:-11px;width:20px;height:24px;font-size:12px}
+.battle .mini,.modal .mini{grid-template-columns:repeat(7,minmax(0,5px));grid-auto-rows:5px;padding:1px}
+/* キャラクリ */
+.make{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);height:100%;gap:6px}
+.pv{display:grid;grid-template-columns:116px minmax(0,1fr);grid-template-areas:"cv rot" "cv nm" "cv act";gap:4px 8px;align-items:center}.pv h2{display:none}.pv canvas{grid-area:cv;width:116px}.pv .rot{grid-area:rot;flex-wrap:nowrap}.pv .opt{grid-area:nm;grid-template-columns:3em minmax(0,1fr)}.pv input{padding:4px}.pv .act{grid-area:act;flex-wrap:nowrap;gap:4px}.pv .act .btn{flex:1 1 0;min-width:0}
+.rows{grid-template-rows:auto minmax(0,1fr);gap:6px;overflow:hidden}.tabs{display:flex;gap:3px}.tabs button{flex:1 1 0;min-width:0;min-height:34px;padding:0;border:1px solid var(--line);font-size:13px}.tabs button[aria-pressed=true]{background:var(--gold);color:#2a1a0a}
+.panel{display:block;min-height:0}.grp{display:none;gap:7px;align-content:start}.grp.on{display:grid}.classes{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.cls{padding:5px 6px;font-size:12px;line-height:1.3}.cls b{font-size:15px}.cls svg{width:22px;height:22px}.opt{grid-template-columns:3.6em minmax(0,1fr);gap:4px;font-size:12px}.chips{gap:3px}.sw{width:27px;height:27px}
+/* その他 */
+#titleCast{width:auto;height:90px}.title{gap:6px}.logo{font-size:clamp(38px,12vw,60px)}.tag{font-size:13px;margin:0;line-height:1.5}
+.rw{gap:6px}.rw h2{font-size:22px}.rw p{margin:0;font-size:13px}.rw .gridc{flex-wrap:nowrap;width:100%;padding:12px 0 4px 8px;gap:8px}.rw .card{flex:1 1 0;min-width:0;height:auto;min-height:176px;border-width:7px;border-image-width:7px;font-size:10px}.rw .card .nm{font-size:12px}.rw .card .tx{font-size:10.5px}.rw .card .mid svg{width:30px;height:30px}
+.modal{padding:4px}.modal .dark{border-width:8px;border-image-width:8px}.modal h2{font-size:15px}.modal .gridc{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px 5px;padding:10px 0 0 8px}.modal .card{height:82px;border-width:5px;border-image-width:5px;align-items:center}.modal .card .tx,.modal .card svg{display:none}.modal .card .nm{font-size:9.5px;line-height:1.1;padding-left:9px;align-self:flex-start;min-height:21px}.mbox{max-height:100%}.modal .foot{padding-top:4px}.paper.credit{font-size:11px}
+}
+@media (max-width:860px) and (orientation:portrait){
+.battle{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto minmax(0,1fr) auto;grid-template-areas:"hud top" "hud bm" "foes foes" "board board" "hand hand"}
+}
+@media (max-height:520px) and (orientation:landscape){
+.battle{grid-template-columns:minmax(0,150px) minmax(0,1fr) minmax(250px,40%);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"hud board hand" "foes board hand" ". board hand" "top board hand"}
+#foes{flex-direction:column}.foe{flex:none}.topline{flex-direction:row;text-align:left;justify-content:space-between}
+.bm{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:32px;justify-content:flex-start}
+.battle .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));row-gap:9px;align-content:start}.battle .card{height:96px}.hand{justify-content:flex-start}#info{height:42px}
+.make{grid-template-columns:minmax(0,390px) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}.pv{align-content:start}
+#titleCast{height:70px}.logo{font-size:38px}.modal .gridc{grid-template-columns:repeat(8,minmax(0,1fr))}.rw .card{min-height:150px}
+}
 @media(prefers-reduced-motion:reduce){.card{transition:none}.bnr{animation-duration:.01s}}
 </style>
 <div id="app"></div><div id="tip" class="tip" hidden></div>
