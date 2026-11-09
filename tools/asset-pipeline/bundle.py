@@ -26,7 +26,7 @@ def detect(cols,pref):
 imgs={};parts={};A=0
 for pid,v in plan.items():
     rec=v['rec'] or {}
-    pref=rec.get('material') or (rec.get('color_1') or {}).get('material') or ('hair' if pid.startswith('beard') else 'cloth' if pid.startswith(('leg','top','hat')) else None)
+    pref=rec.get('material') or (rec.get('color_1') or {}).get('material') or ('hair' if pid.startswith(('beard','hx_')) else 'cloth' if pid.startswith(('leg','top','hat')) else None)
     parts[pid]={'male':[],'female':[],'teen':[]}
     for l in v['layers']:
         ims=[];h=0;w=0;meta={}

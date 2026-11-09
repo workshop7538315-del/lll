@@ -12,7 +12,7 @@ files={l.strip() for l in open(S+'/dl/lpc_files.txt')}
 P={'body':('body',None),'skeleton':('body_skeleton',None),'zombie':('body_zombie','zombie')}
 for k,v in C.HEADPARTS.items():P[k]=(v,None)
 P['head_zombie']=('heads_zombie',None);P['head_skel']=('heads_skeleton',None)
-for L in (C.HAIR,C.BEARD,C.EARS,C.TOP,C.LEG,C.FEET,C.HAT,C.FACE,C.ARM,C.CAPE):
+for L in (C.HAIRX,C.HAIR,C.BEARD,C.EARS,C.TOP,C.LEG,C.FEET,C.HAT,C.FACE,C.ARM,C.CAPE):
     for pid,_,d,v in L:P[pid]=(d,v)
 for pid,d,v in C.W+C.SHIELD:P[pid]=(d,v)
 plan={};bad=[]
@@ -44,6 +44,6 @@ print('empty',[k for k,v in plan.items() if not v['layers']])
 need=sorted({'spritesheets/'+p for v in plan.values() for l in v['layers'] for p,_ in l['paths'].values()})
 open(S+'/build/need.txt','w').write('\n'.join(need));print('files',len(need))
 json.dump({k:{'var':v['var'],'layers':v['layers'],'credits':v['d'].get('credits',[]),'rec':v['d'].get('recolors')} for k,v in plan.items()},open(S+'/build/plan.json','w'))
-cat={k:[(a,b) for a,b,*_ in getattr(C,k)] for k in('HAIR','BEARD','EARS','TOP','LEG','FEET','HAT','FACE','ARM','CAPE')}
+cat={k:[(a,b) for a,b,*_ in getattr(C,k)] for k in('HAIRX','HAIR','BEARD','EARS','TOP','LEG','FEET','HAT','FACE','ARM','CAPE')}
 cat['HEAD']=[list(x) for x in C.HEADS]
 json.dump(cat,open(S+'/build/catalog.json','w'),ensure_ascii=False)
