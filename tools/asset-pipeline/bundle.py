@@ -2,9 +2,17 @@ import json,sys,os,io,base64,hashlib,re
 from PIL import Image
 S=sys.argv[1];L=S+'/dl/lpc';T=S+'/dl/tiles';K=S+'/dl/kenney-uipack/UIPackAdventure/PNG/Double/'
 plan=json.load(open(S+'/build/plan.json'))
-pal={m:json.load(open(f'{L}/palette_definitions/{m}/{m}_ulpc.json')) for m in('body','hair','cloth','metal','eye')}
+pal={m:json.load(open(f'{L}/palette_definitions/{m}/{m}_ulpc.json')) for m in('body','hair','cloth','metal','eye','wood')}
+import numpy as np
 def b64(im):
-    b=io.BytesIO();im.save(b,'PNG',optimize=True);return 'data:image/png;base64,'+base64.b64encode(b.getvalue()).decode()
+    b=io.BytesIO();a=np.array(im.convert('RGBA'));key=(a[...,0].astype(np.uint32)<<24)|(a[...,1].astype(np.uint32)<<16)|(a[...,2].astype(np.uint32)<<8)|a[...,3]
+    u,inv=np.unique(key,return_inverse=True)
+    if len(u)<=256:
+        idx=inv.reshape(key.shape).astype(np.uint8);q=Image.fromarray(idx,'P');pal=[]
+        for v in u: pal+=[int(v)>>24&255,int(v)>>16&255,int(v)>>8&255]
+        q.putpalette(pal);q.save(b,'PNG',optimize=True,transparency=bytes(int(v)&255 for v in u))
+    else: im.save(b,'PNG',optimize=True)
+    return 'data:image/png;base64,'+base64.b64encode(b.getvalue()).decode()
 def hx(c): return '#%02x%02x%02x'%c[:3]
 def detect(cols,pref):
     res=[]
@@ -13,18 +21,19 @@ def detect(cols,pref):
     for m in order:
         best=max(pal[m].items(),key=lambda kv:len(lc&{x.lower() for x in kv[1]}))
         hit=len(lc&{x.lower() for x in best[1]})
-        if hit>=4 and hit>=len(best[1])*.6: return m,best[0],hit
+        if (hit>=4 and hit>=len(best[1])*.6) or (m==pref and hit>=2): return m,best[0],hit
     return None,None,0
 imgs={};parts={};A=0
 for pid,v in plan.items():
     rec=v['rec'] or {}
-    pref=rec.get('material') or (rec.get('color_1') or {}).get('material')
-    parts[pid]={'male':[],'female':[]}
+    pref=rec.get('material') or (rec.get('color_1') or {}).get('material') or ('hair' if pid.startswith('beard') else 'cloth' if pid.startswith(('leg','top','hat')) else None)
+    parts[pid]={'male':[],'female':[],'teen':[]}
     for l in v['layers']:
         ims=[];h=0;w=0;meta={}
         for a,(p,c) in l['paths'].items():
             im=Image.open(f'{L}/spritesheets/{p}').convert('RGBA')
-            fw=im.width//c
+            if c<0: fw=-c;c=im.width//fw
+            else: fw=im.width//c
             meta[a]={'y':h,'h':im.height,'fw':fw,'cols':c}
             ims.append((h,im));h+=im.height;w=max(w,im.width)
         sh=Image.new('RGBA',(w,h),(0,0,0,0))
@@ -33,9 +42,13 @@ for pid,v in plan.items():
         mat,base,hit=detect(cols,pref)
         k=hashlib.md5(sh.tobytes()+bytes(str(sh.size),'ascii')).hexdigest()[:10]
         if k not in imgs: imgs[k]=b64(sh)
-        parts[pid][l['bt']].append(dict(z=l['z'],img=k,mat=mat,base=base,anims=meta))
+        e=dict(z=l['z'],img=k,mat=mat,base=base,anims=meta)
+        if pid.startswith('head_') and pid not in('head_skel',):
+            lc={c.lower() for c in cols};eb=max(pal['eye'].items(),key=lambda kv:len(lc&{x.lower() for x in kv[1]}))
+            if len(lc&{x.lower() for x in eb[1]})>=2: e['eye']=eb[0]
+        parts[pid][l['bt']].append(e)
     x=parts[pid]['male'] or parts[pid]['female']
-    print(pid,[(y['mat'],y['base']) for y in x][:2])
+    if not any(y['mat'] for y in x): print('nomat',pid,end=' ')
 # palettes (only names)
 P={m:{k:[c.lower() for c in v] for k,v in pal[m].items()} for m in pal}
 # terrain
@@ -64,5 +77,5 @@ cr=list(dict.fromkeys(cr))
 authors=sorted({a for c in cr for a in c[0]})
 lic=sorted({a for c in cr for a in c[1]})
 urls=sorted({a for c in cr for a in c[2]})
-json.dump({'img':imgs,'parts':parts,'pal':P,'tiles':tiles,'objs':objs,'ui':ui,'credits':{'authors':authors,'licenses':lic,'urls':urls}},open(S+'/build/assets.json','w'))
+json.dump({'img':imgs,'parts':parts,'pal':P,'tiles':tiles,'objs':objs,'ui':ui,'catalog':json.load(open(S+'/build/catalog.json')),'credits':{'authors':authors,'licenses':lic,'urls':urls}},open(S+'/build/assets.json','w'))
 print('\nsize',os.path.getsize(S+'/build/assets.json')/1e6,len(imgs),len(authors),lic)

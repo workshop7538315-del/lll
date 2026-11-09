@@ -112,7 +112,7 @@ function rangeTiles(G,u,c){const r=c.r;switch(r.s){
  case'line':return rays(G,u,DIRS4,r.n,r.min,r.pierce);
  case'diag':return rays(G,u,DIRS8.slice(4),r.n,r.min,r.pierce);
  case'star':return rays(G,u,DIRS8,r.n,r.min,r.pierce);
- case'walk':return bfs(G,u,r.n).out.map(t=>({x:t.x,y:t.y}));
+ case'walk':return bfs(G,u,r.n+(u.walkBonus||0)).out.map(t=>({x:t.x,y:t.y}));
  case'knight':return[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]].map(([a,b])=>({x:u.x+a,y:u.y+b})).filter(t=>inb(G,t.x,t.y));
  case'leap':case'dia':{const o=[];for(let y=0;y<G.h;y++)for(let x=0;x<G.w;x++){const d=man(u.x,u.y,x,y);if(d<(r.min||1)||d>r.n||!inb(G,x,y))continue;if(solid(G,x,y)&&r.s==='dia')continue;if(r.s==='dia'&&!r.nolos&&!los(G,u.x,u.y,x,y))continue;o.push({x,y})}return o}
  }return[]}
@@ -150,7 +150,7 @@ function play(G,u,idx,t){const id=u.hand[idx],c=CARDS[id],evs=[];u.mana-=c.c;u.h
  if(!hasDash&&(c.t==='atk'&&!c.e.some(e=>e.k==='moveTo')))evs.push({t:'swing',u:u.id,x:t.x,y:t.y,anim:c.anim,fx:c.fx,card:id,area});
  else if(c.t==='skill')evs.push({t:'cast',u:u.id,anim:c.anim,card:id});
  for(const e of c.e){switch(e.k){
-  case'moveTo':{const p=c.r.s==='walk'?pathTo(G,u,c.r.n,t.x,t.y):[[u.x,u.y],[t.x,t.y]];u.x=t.x;u.y=t.y;evs.push({t:'move',u:u.id,p,jump:e.jump,blink:e.blink});break}
+  case'moveTo':{const p=c.r.s==='walk'?pathTo(G,u,c.r.n+(u.walkBonus||0),t.x,t.y):[[u.x,u.y],[t.x,t.y]];u.x=t.x;u.y=t.y;evs.push({t:'move',u:u.id,p,jump:e.jump,blink:e.blink});break}
   case'dash':{const d=dashTile(G,u,t),p=[[u.x,u.y],[d.x,d.y]];u.x=d.x;u.y=d.y;evs.push({t:'move',u:u.id,p,dash:1});evs.push({t:'swing',u:u.id,x:t.x,y:t.y,anim:c.anim,fx:c.fx,card:id,area});break}
   case'dmg':for(const v of victims)if(!v.dead)hurt(G,v,calcDmg(u,v,e.v),evs,'hit');break;
   case'block':u.block+=e.v;evs.push({t:'block',u:u.id,v:e.v});break;
@@ -163,7 +163,7 @@ function play(G,u,idx,t){const id=u.hand[idx],c=CARDS[id],evs=[];u.mana-=c.c;u.h
   case'retreat':{const foe=victims[0]||{x:t.x,y:t.y};const b=retreatTile(G,u,{x:foe.x,y:foe.y,n:e.v});if(b){const p=pathTo(G,u,e.v,b.x,b.y);u.x=b.x;u.y=b.y;evs.push({t:'move',u:u.id,p})}break}
  }}
  return evs}
-function startTurn(G,u){const evs=[];u.block=0;u.mana=u.maxMana;if(u.status.burn>0){hurt(G,u,u.status.burn,evs,'burn');u.status.burn--}drawN(G,u,Math.max(0,u.handSize-u.hand.length),evs);return evs}
+function startTurn(G,u){const evs=[];u.block=0;u.mana=u.maxMana;let extra=0;if(!u.opened){u.opened=1;u.block=u.startBlock||0;u.mana+=u.mana1||0;extra=u.firstDraw||0}if(u.status.burn>0){hurt(G,u,u.status.burn,evs,'burn');u.status.burn--}drawN(G,u,Math.max(0,u.handSize+extra-u.hand.length),evs);return evs}
 function endTurn(G,u){const evs=[];u.discard.push(...u.hand);u.hand=[];for(const s of['root','weak','vuln'])if(u.status[s]>0)u.status[s]--;if(!u.dead&&G.cells[u.y][u.x].t==='fire')hurt(G,u,3,evs,'fire');return evs}
 function makeUnit(id,side,o){const u={id,side,x:0,y:0,hp:o.hp,maxHp:o.maxHp||o.hp,mana:3,maxMana:3,block:0,status:{},hand:[],discard:[],draw:[],exhaust:[],handSize:o.hand||5,deck:o.deck.slice(),name:o.n,look:o.look,pref:o.pref||1,boss:o.boss,kind:o.kind};return u}
 function genMap(stage,R){const{w,h,theme}=stage;for(let tries=0;tries<300;tries++){const cells=[];for(let y=0;y<h;y++){const r=[];for(let x=0;x<w;x++)r.push({t:'floor',v:R()});cells.push(r)}
@@ -183,8 +183,8 @@ function genMap(stage,R){const{w,h,theme}=stage;for(let tries=0;tries<300;tries+
  shuffle(spots,R);G.pSpot=pSpot;G.fSpots=spots;return G}
  throw new Error('map')}
 function setupBattle(stageIdx,hero,seed){const R=mulberry(seed),s=STAGES[stageIdx],G=genMap(s,R);G.R=R;G.stage=stageIdx;G.turn=1;
- const p=makeUnit(0,'hero',{n:hero.name,hp:hero.hp,maxHp:hero.maxHp,deck:hero.deck,hand:5,look:hero.look,kind:'hero',pref:hero.pref});p.x=G.pSpot.x;p.y=G.pSpot.y;p.facing=1;p.draw=shuffle(p.deck.slice(),R);{const top=p.draw.length-1;if(!p.draw.slice(-5).some(id=>CARDS[id].t==='move')){const j=p.draw.findIndex(id=>CARDS[id].t==='move');if(j>=0)[p.draw[j],p.draw[top]]=[p.draw[top],p.draw[j]]}}G.units.push(p);
- s.foes.forEach((f,i)=>{const d=FOES[f],u=makeUnit(i+1,'foe',{...d,kind:f});[u.x,u.y]=G.fSpots[i];u.facing=0;u.draw=shuffle(u.deck.slice(),R);G.units.push(u)});return G}
+ const p=makeUnit(0,'hero',{n:hero.name,hp:hero.hp,maxHp:hero.maxHp,deck:hero.deck,hand:5,look:hero.look,kind:'hero',pref:hero.pref});{const b=hero.bonus||{};if(b.atk)p.status.str=b.atk;p.startBlock=b.guard||0;p.firstDraw=b.draw||0;p.walkBonus=b.walk||0;p.mana1=b.mana1||0}p.x=G.pSpot.x;p.y=G.pSpot.y;p.facing=1;p.draw=shuffle(p.deck.slice(),R);{const top=p.draw.length-1;if(!p.draw.slice(-5).some(id=>CARDS[id].t==='move')){const j=p.draw.findIndex(id=>CARDS[id].t==='move');if(j>=0)[p.draw[j],p.draw[top]]=[p.draw[top],p.draw[j]]}}G.units.push(p);
+ s.foes.forEach((f,i)=>{const d=FOES[f],df=hero.diff||0,u=makeUnit(i+1,'foe',{...d,hp:Math.round(d.hp*(1+df*.3)),kind:f});if(df)u.status.str=df;[u.x,u.y]=G.fSpots[i];u.facing=0;u.draw=shuffle(u.deck.slice(),R);G.units.push(u)});return G}
 const alive=(G,side)=>G.units.filter(u=>!u.dead&&u.side===side);
 const outcome=G=>!alive(G,'hero').length?'lose':!alive(G,'foe').length?'win':null;
 // AI ------------------------------------------------
@@ -197,5 +197,30 @@ function chooseAI(G,u){const foes=alive(G,u.side==='foe'?'hero':'foe');if(!foes.
    else if(c.t==='atk'){const r=estHit(G,u,c,t);if(!r.sum&&!c.e.some(e=>e.k==='push'||e.k==='pull'))continue;if(!r.sum)continue;s=r.sum*3+r.kill*20-c.c*2}
    else{const near=foes.some(f=>man(f.x,f.y,u.x,u.y)<=5);if(c.e.some(e=>e.k==='block'))s=near&&curHit===0?4:(near?1:0);else if(c.e.some(e=>e.k==='heal'))s=u.hp<u.maxHp*.6?8:0;else s=3}
    s+=G.R()*.2;if(s>bs){bs=s;best={i,t}}}});return best}
-function newRun(look,cls,name,seed){const k=CLASSES[cls];return{pref:{sword:1,spear:2,mage:3,bow:3}[cls],name:name||'旅人',cls,hp:k.hp,maxHp:k.hp,deck:k.deck.slice(),look,stage:0,seed:seed||(Date.now()&0xffffff)}}
-if(typeof module!=='undefined')module.exports={CARDS,CLASSES,FOES,STAGES,REWARD,CLASS_POOL,setupBattle,chooseAI,play,targets,startTurn,endTurn,outcome,alive,newRun,canPlay,mulberry,shuffle,areaTiles};
+// 成長と装備 ----------------------------------------
+const RARITY={c:{n:'並',col:'#c9c2b0'},r:{n:'上',col:'#6fb6ff'},e:{n:'極',col:'#ffb547'}};
+const I=(n,slot,rar,o)=>({n,slot,rar,...o});
+const ITEMS={
+ sw_iron:I('鉄の剣','weapon','c',{cls:'sword',sp:'w_sword'}),sw_dagger:I('短剣','weapon','c',{cls:'sword',sp:'w_dagger',card:'hitrun'}),sw_saber:I('サーベル','weapon','c',{cls:'sword',sp:'w_saber',card:'cleave'}),sw_scimitar:I('偃月刀','weapon','r',{cls:'sword',sp:'w_scimitar',atk:1,hp:3}),sw_rapier:I('細剣','weapon','r',{cls:'sword',sp:'w_rapier',card:'dashcut',walk:0}),sw_long:I('長剣','weapon','r',{cls:'sword',sp:'w_longsword',atk:1,card:'cleave'}),sw_mace:I('鎚矛','weapon','r',{cls:'sword',sp:'w_mace',atk:2,hp:-4}),sw_katana:I('刀','weapon','e',{cls:'sword',sp:'w_katana',atk:2,card:'hitrun'}),sw_axe:I('戦斧','weapon','e',{cls:'sword',sp:'w_waraxe',atk:2,card:'execute'}),
+ sp_iron:I('鉄の槍','weapon','c',{cls:'spear',sp:'w_spear'}),sp_long:I('長槍','weapon','c',{cls:'spear',sp:'w_longspear',card:'hookpull'}),sp_trident:I('三叉槍','weapon','r',{cls:'spear',sp:'w_trident',atk:1,card:'buttstrike'}),sp_halberd:I('斧槍','weapon','r',{cls:'spear',sp:'w_halberd',atk:1,hp:4}),sp_scythe:I('大鎌','weapon','e',{cls:'spear',sp:'w_scythe',atk:2,card:'sweep'}),sp_dragon:I('竜槍','weapon','e',{cls:'spear',sp:'w_dragon',atk:2,card:'impale'}),
+ st_simple:I('木の杖','weapon','c',{cls:'mage',sp:'w_staff'}),st_wand:I('小杖','weapon','c',{cls:'mage',sp:'w_wand',card:'gust'}),st_gnarled:I('節くれの杖','weapon','c',{cls:'mage',sp:'w_gnarled',hp:3}),st_loop:I('環の杖','weapon','r',{cls:'mage',sp:'w_loop',atk:1,card:'frost'}),st_diamond:I('菱石の杖','weapon','r',{cls:'mage',sp:'w_diamond',card:'chain'}),st_crystal:I('水晶の杖','weapon','e',{cls:'mage',sp:'w_crystal',atk:2,card:'meteor'}),
+ bw_normal:I('狩人の弓','weapon','c',{cls:'bow',sp:'w_bow'}),bw_recurve:I('反り弓','weapon','r',{cls:'bow',sp:'w_recurve',atk:1,card:'fire_arrow'}),bw_great:I('大弓','weapon','e',{cls:'bow',sp:'w_great',atk:2,card:'snipe'}),
+ ar_cloth:I('旅の服','armor','c',{hp:2}),ar_leather:I('革の胴着','armor','c',{hp:5}),ar_robe:I('魔導衣','armor','c',{hp:2,card:'ward'}),ar_chain:I('鎖帷子','armor','r',{hp:9}),ar_shadow:I('影の外套','armor','r',{hp:4,card:'shadow'}),ar_plate:I('板金鎧','armor','e',{hp:15,guard:2}),ar_dragon:I('竜鱗の鎧','armor','e',{hp:10,guard:4,atk:1}),
+ of_buckler:I('木の盾','off','c',{guard:3,sp:'sh_round'}),of_tome:I('古い魔導書','off','c',{card:'focus'}),of_quiver:I('予備の矢筒','off','r',{card:'rain'}),of_crusader:I('聖騎士の盾','off','r',{guard:5,hp:3,sp:'sh_crusader'}),of_spartan:I('大円盾','off','e',{guard:8,card:'iron',sp:'sh_spartan'}),
+ ch_iron:I('鉄の指輪','charm','c',{hp:4}),ch_boot:I('軽い靴紐','charm','c',{card:'sidestep'}),ch_salve:I('薬草袋','charm','c',{card:'salve'}),ch_lion:I('獅子の護符','charm','r',{atk:1}),ch_book:I('修行の書','charm','r',{xp:30}),ch_wing:I('風の羽','charm','r',{walk:1}),ch_hand:I('早指の手袋','charm','r',{draw:1}),ch_heart:I('治癒の心臓','charm','r',{heal:15}),ch_star:I('星の欠片','charm','e',{mana1:1}),ch_eye:I('賢者の瞳','charm','e',{picks:1,draw:1}),
+};
+const PERKS={hp:{n:'頑丈',d:'最大HP+5',max:6,cost:1},guard:{n:'受け身',d:'戦闘開始時のガード+3',max:4,cost:1},heal:{n:'回復力',d:'戦闘後の回復+10%',max:3,cost:1},draw:{n:'手際',d:'最初の手札+1',max:2,cost:2},picks:{n:'目利き',d:'カード報酬の候補+1',max:1,cost:2},atk:{n:'鍛錬',d:'攻撃のダメージ+1',max:3,cost:3},walk:{n:'健脚',d:'歩く系カードの距離+1',max:1,cost:3}};
+const STARTER={sword:'sw_iron',spear:'sp_iron',mage:'st_simple',bow:'bw_normal'};
+const LEVEL_CAP=30,xpNeed=lv=>90+lv*70;
+function newHero(id,name,cls,look){return{id,name:name||'旅人',cls,look,level:1,xp:0,perks:{},equip:{weapon:STARTER[cls],armor:'ar_cloth',off:'',charm:''},inv:[STARTER[cls],'ar_cloth'],wins:0,best:0}}
+function itemDesc(it){const a=[];if(it.atk)a.push('攻撃+'+it.atk);if(it.hp)a.push('HP'+(it.hp>0?'+':'')+it.hp);if(it.guard)a.push('開始ガード+'+it.guard);if(it.walk)a.push('歩く距離+'+it.walk);if(it.draw)a.push('初手+'+it.draw);if(it.mana1)a.push('初ターンのマナ+'+it.mana1);if(it.heal)a.push('戦後回復+'+it.heal+'%');if(it.picks)a.push('報酬候補+'+it.picks);if(it.xp)a.push('経験値+'+it.xp+'%');if(it.card)a.push('札「'+CARDS[it.card].n+'」');return a.join(' / ')||'初期装備'}
+function heroStats(h){const b={atk:0,guard:0,walk:0,draw:0,heal:0,picks:0,xp:0,mana1:0},P=h.perks||{},k=CLASSES[h.cls];let hp=k.hp+(h.level-1)*2+(P.hp||0)*5;b.atk+=P.atk||0;b.guard+=(P.guard||0)*3;b.walk+=P.walk||0;b.draw+=P.draw||0;b.heal+=(P.heal||0)*10;b.picks+=P.picks||0;const cards=[];for(const s of['weapon','armor','off','charm']){const it=ITEMS[h.equip[s]];if(!it)continue;hp+=it.hp||0;for(const f of['atk','guard','walk','draw','heal','picks','xp','mana1'])b[f]+=it[f]||0;if(it.card)cards.push(it.card)}b.walk=Math.min(b.walk,2);return{maxHp:hp,bonus:b,cards}}
+const perkSpent=h=>Object.entries(h.perks||{}).reduce((s,[k,v])=>s+PERKS[k].cost*v,0);
+const perkLeft=h=>h.level-1-perkSpent(h);
+function canPerk(h,k){return(h.perks[k]||0)<PERKS[k].max&&perkLeft(h)>=PERKS[k].cost}
+function heroLook(h){const L={...h.look},w=ITEMS[h.equip.weapon],o=ITEMS[h.equip.off];L.w=w?w.sp:'';L.sh=o&&o.sp||'';return L}
+function gainXp(h,n){const s=heroStats(h);n=Math.round(n*(1+s.bonus.xp/100));h.xp+=n;let up=0;while(h.level<LEVEL_CAP&&h.xp>=xpNeed(h.level)){h.xp-=xpNeed(h.level);h.level++;up++}if(h.level>=LEVEL_CAP)h.xp=0;return{xp:n,up}}
+const stageXp=i=>30+i*12+(STAGES[i].boss?90:0);
+function rollDrop(i,h,R){const boss=STAGES[i].boss;if(!boss&&R()>.7)return null;const r=R(),rar=boss?'e':i<3?(r<.8?'c':'r'):i<6?(r<.45?'c':r<.9?'r':'e'):(r<.6?'r':'e');const fits=id=>!ITEMS[id].cls||ITEMS[id].cls===h.cls,free=Object.keys(ITEMS).filter(id=>fits(id)&&!h.inv.includes(id));let pool=free.filter(id=>ITEMS[id].rar===rar);if(!pool.length)pool=free;return pool.length?pool[Math.floor(R()*pool.length)]:null}
+function newRun(h,seed){const s=heroStats(h),k=CLASSES[h.cls];return{heroId:h.id,pref:{sword:1,spear:2,mage:3,bow:3}[h.cls],name:h.name,cls:h.cls,hp:s.maxHp,maxHp:s.maxHp,bonus:s.bonus,deck:[...k.deck,...s.cards],look:heroLook(h),diff:h.diff||0,stage:0,seed:seed||(Date.now()&0xffffff)}}
+if(typeof module!=='undefined')module.exports={CARDS,CLASSES,FOES,STAGES,REWARD,CLASS_POOL,setupBattle,chooseAI,play,targets,startTurn,endTurn,outcome,alive,newRun,canPlay,mulberry,shuffle,areaTiles,ITEMS,PERKS,newHero,heroStats,gainXp,stageXp,rollDrop,canPerk,perkLeft};
