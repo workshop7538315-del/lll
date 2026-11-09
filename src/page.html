@@ -4,7 +4,7 @@
 <style>
 /* 夕暮れの作戦卓: 濃紺の卓に羊皮紙のカードと木枠を置く */
 :root{color-scheme:dark;--ink:#16151f;--table:#23212e;--line:#4a4258;--paper:#f8eccb;--paper-ink:#3d2a19;--gold:#f0c060;--mana:#2a8fd0;--move:#6fd98a;--hurt:#ef6a5b;--muted:#a9a2b8;--font:"DotGothic16","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
-html,body{height:100%}body{background:var(--ink);color:#f1ecdf;font-family:var(--font);overflow:hidden;font-size:15px;overscroll-behavior:none}
+html,body{height:100%}*{-webkit-tap-highlight-color:transparent}body{background:var(--ink);color:#f1ecdf;font-family:var(--font);overflow:hidden;font-size:15px;overscroll-behavior:none}
 #app{height:100%;padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));box-sizing:border-box}
 *{box-sizing:border-box}h1,h2,h3{margin:0;font-weight:400;text-wrap:balance}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}button:focus-visible,input:focus-visible,.card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
@@ -29,8 +29,8 @@ input[type=text]{font:inherit;padding:7px;background:#0005;border:1px solid var(
 /* 戦闘 */
 .battle{height:100%;display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr) minmax(0,220px);grid-template-rows:minmax(0,1fr) auto;gap:8px 12px}
 .side{display:flex;flex-direction:column;gap:8px;min-height:0;min-width:0}.boardwrap{min-height:0;min-width:0;display:grid;place-items:center;position:relative}
-#bd{image-rendering:pixelated;display:block;cursor:pointer}
-.hand{grid-column:1/-1;display:flex;gap:8px;align-items:flex-end;min-width:0}.cards{flex:1;display:flex;justify-content:center;gap:6px;overflow-x:auto;padding:14px 14px 2px;min-width:0;min-height:200px}
+#bd{image-rendering:pixelated;display:block;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;outline:0}
+.hand{grid-column:1/-1;display:flex;gap:8px;align-items:flex-end;min-width:0}.cards{flex:1;display:flex;justify-content:center;gap:6px;overflow-x:auto;padding:14px 14px 2px;min-width:0;height:204px;flex:1 0 auto;flex-basis:0}
 .card{flex:0 0 124px;height:182px;position:relative;padding:0;color:var(--paper-ink);border-style:solid;border-width:10px;border-image:var(--ui-panel_brown) 44 fill/10px stretch;text-align:left;transition:transform .12s;display:flex;flex-direction:column;gap:2px;font-size:11.5px;line-height:1.3}
 .card:hover,.card.sel{transform:translateY(-10px)}.card.sel{filter:drop-shadow(0 0 7px var(--gold))}.card.no{filter:grayscale(.7) brightness(.72)}
 .card .cost{position:absolute;left:-13px;top:-14px;width:28px;height:34px;background:var(--ui-hexagon_grey_dark) center/contain no-repeat;color:#fff;display:grid;place-items:center;font-size:16px;text-shadow:0 1px 0 #000}
@@ -66,12 +66,12 @@ input[type=text]{font:inherit;padding:7px;background:#0005;border:1px solid var(
 .boardwrap{grid-area:board}.hand{grid-area:hand;flex-direction:column;align-items:stretch;gap:2px;min-height:0}
 .ctl{order:-1;display:flex!important;align-items:center;gap:4px;min-width:0}.ctl .piles{flex:none;gap:3px;font-size:10px}.ctl .piles button{padding:2px 3px;min-height:34px;line-height:1.1}
 #info{display:block;flex:1;min-width:0;height:42px;overflow:hidden;font-size:11px;line-height:14px;color:#f1ecdf}
-.battle .cards{justify-content:stretch;overflow:visible;padding:11px 1px 0 8px;gap:3px;min-height:0}
-.battle .card{flex:1 1 0;min-width:0;height:108px;border-width:6px;border-image-width:6px;align-items:center;justify-content:flex-start;gap:1px}
+.battle .cards{flex:none;justify-content:flex-start;overflow-x:auto;overflow-y:hidden;padding:11px 8px 0 11px;gap:6px;height:122px;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:none}.battle .cards::-webkit-scrollbar{display:none}
+.battle .card{flex:0 0 76px;width:76px;height:108px;border-width:6px;border-image-width:6px;align-items:center;justify-content:flex-start;gap:1px}
 .battle .card:hover{transform:none}.battle .card.sel{transform:translateY(-6px)}
 .battle .card .tx{display:none}.battle .card .nm{font-size:10.5px;line-height:1.1;padding-left:10px;min-height:23px;align-self:flex-start}.battle .card .mid,.modal .card .mid{flex-direction:column;gap:1px}.battle .card svg{width:21px;height:21px}
 .card .cost{left:-10px;top:-11px;width:20px;height:24px;font-size:12px}
-.battle .mini,.modal .mini{grid-template-columns:repeat(7,minmax(0,5px));grid-auto-rows:5px;padding:1px}
+.battle .mini,.modal .mini{grid-template-columns:repeat(7,5px);grid-auto-rows:5px;padding:1px}
 /* キャラクリ */
 .make{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);height:100%;gap:6px}
 .pv{display:grid;grid-template-columns:116px minmax(0,1fr);grid-template-areas:"cv rot" "cv nm" "cv act";gap:4px 8px;align-items:center}.pv h2{display:none}.pv canvas{grid-area:cv;width:116px}.pv .rot{grid-area:rot;flex-wrap:nowrap}.pv .opt{grid-area:nm;grid-template-columns:3em minmax(0,1fr)}.pv input{padding:4px}.pv .act{grid-area:act;flex-wrap:nowrap;gap:4px}.pv .act .btn{flex:1 1 0;min-width:0}
@@ -89,7 +89,7 @@ input[type=text]{font:inherit;padding:7px;background:#0005;border:1px solid var(
 .battle{grid-template-columns:minmax(0,150px) minmax(0,1fr) minmax(250px,40%);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"hud board hand" "foes board hand" ". board hand" "top board hand"}
 #foes{flex-direction:column}.foe{flex:none}.topline{flex-direction:row;text-align:left;justify-content:space-between}
 .bm{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:32px;justify-content:flex-start}
-.battle .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));row-gap:9px;align-content:start}.battle .card{height:96px}.hand{justify-content:flex-start}#info{height:42px}
+.hand{justify-content:flex-start}#info{height:42px}
 .make{grid-template-columns:minmax(0,390px) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}.pv{align-content:start}
 #titleCast{height:70px}.logo{font-size:38px}.modal .gridc{grid-template-columns:repeat(8,minmax(0,1fr))}.rw .card{min-height:150px}
 }
