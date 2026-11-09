@@ -7,6 +7,7 @@ A = json.loads(read('assets/assets.json'))
 icons = json.loads(read('assets/game-icons.json'))
 rules, game, hero, page = read('src/rules.js'), read('src/game.js'), read('src/hero.js'), read('src/page.html')
 names = set(re.findall(r"icon:'([^']+)'", rules))
+names |= set(re.findall(r"TR\('[^']+','([^']+)'", rules))
 missing = sorted(names - set(icons))
 if missing: raise SystemExit(f'アイコンが見つかりません: {missing}')
 A['icons'] = {n: icons[n] for n in names}

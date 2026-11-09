@@ -5,7 +5,8 @@
 - ビルド: `python3 tools/build.py`（`dist/index.html` が1ファイルで動く）
 - バランス確認: `node tools/sim.js`（AI同士の到達分布）
 - カード、敵、ステージのデータ: `src/rules.js`
-- 装備、能力、経験値: `src/rules.js` の `ITEMS`、`PERKS`、`xpNeed`
+- 装備、スキルツリー、職業、経験値: `src/rules.js` の `ITEMS`、`TREES`、`JOBS`、`xpNeed`
+- ルールのテスト: `node tools/test.js`
 - 冒険者の保存、作成、育成の画面: `src/hero.js`
 - 画面と演出: `src/game.js`、`src/page.html`
 - キャラクリの選択肢: `tools/asset-pipeline/catalog.py`
