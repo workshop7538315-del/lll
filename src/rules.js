@@ -89,7 +89,7 @@ const CARDS={
  collideslam:{n:'叩きつけ',c:2,t:'atk',icon:'pummeled',anim:'weapon',r:{s:'adj'},aim:'enemy',e:[dmg(5),{k:'push',v:4}],d:'隣の敵に5ダメージ、4マス押す。'},
  brace:{n:'構え',c:0,t:'skill',icon:'spear-feather',r:{s:'self'},aim:'self',e:[block(3),{k:'over',v:1}],d:'ガード3。迎撃の回数+1。'},
  thousand:{n:'千本突き',c:3,t:'atk',icon:'stone-spear',anim:'weapon',r:{s:'line',n:3,pierce:1},aim:'any',a:'pierce',e:[dmg(6),dmg(6),dmg(6)],d:'直線3マスを貫き6の3回攻撃。'},
- deepfreeze:{n:'氷結',c:2,t:'atk',icon:'frozen-block',anim:'spell',fx:'ice',r:{s:'dia',n:4},aim:'enemy',e:[dmg(3),st('freeze',1)],d:'3ダメージ。凍結：敵は次の手番に何もできない（ボースは拘束）。'},
+ deepfreeze:{n:'氷結',c:2,t:'atk',icon:'frozen-block',anim:'spell',fx:'ice',r:{s:'dia',n:4},aim:'enemy',e:[dmg(3),st('freeze',1)],d:'3ダメージ。凍結：敵は次の手番に何もできない（ボスには拘束）。'},
  raise:{n:'骸骨召喚',c:2,t:'skill',icon:'raise-skeleton',anim:'spell',r:{s:'dia',n:3},aim:'empty',e:[{k:'summon',f:'skel'}],d:'空きマスに味方の骸骨兵を呼ぶ。最大2体。'},
  raisezombie:{n:'亡者召喚',c:1,t:'skill',icon:'raise-zombie',anim:'spell',r:{s:'dia',n:3},aim:'empty',e:[{k:'summon',f:'zombie'}],d:'空きマスに味方の亡者を呼ぶ。'},
  drain:{n:'魂吸い',c:1,t:'atk',icon:'life-tap',anim:'spell',fx:'dark',r:{s:'dia',n:4},aim:'enemy',e:[dmg(4),{k:'heal',v:3}],d:'射程4の敵に4ダメージ、HP3回復。'},
