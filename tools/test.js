@@ -60,6 +60,7 @@ a=arena({});a.G.cells[1][2].t='ice';a.G.cells[1][3].t='fire';P(a,'blizzard',{x:3
 a=arena({},[[3,1],[5,1]]);a.G.cells[1][4].t='oil';a.G.cells[2][4].t='oil';P(a,'fireball',{x:4,y:2});ok(a.G.cells[1][4].t==='fire'&&a.G.cells[2][4].t==='fire','油の連鎖');ok(a.G.units[2].hp===45,'爆発');
 a=arena({},[[3,1],[3,5]]);for(const y of[1,2,3,4,5])a.G.cells[y][4].t='water';P(a,'thunderclap',{x:3,y:1});ok(a.f.hp===46&&a.G.units[2].hp===46,'感電');
 a=arena({},[[3,1]]);a.u.y=2;a.G.cells[1][3].t='ice';P(a,'buttstrike',{x:3,y:1});ok(a.f.y===0&&a.f.hp===44,'氷で滑る')||0;
+{const rt=R.genRoute(12345);ok(rt.length===R.STAGES.length&&rt[rt.length-1][0]==='boss','道のり');ok(rt.every(f=>f.some(k=>['battle','elite','boss'].includes(k))),'各階に戦闘');const r=R.newRun(R.newHero(1,'x','sword',{}),5);r.cur={kind:'elite'};const G1=R.setupBattle(0,r,5);ok(G1.units.length===4&&G1.units[1].maxHp>R.FOES.goblin.hp,'精鋭');const a0=r.bonus.atk;R.applyBoon(r,'atk');ok(r.bonus.atk===a0+1,'祝福');const hp0=r.maxHp;R.applyBoon(r,'hp');ok(r.maxHp===hp0+10,'祝福HP')}
 // デッキ、刻印、ビルド、対戦
 {const h=R.newHero(1,'x','sword',{});ok(R.deckIssues(h).length===0,'初期デッキ有効');ok(h.deck.length===12,'初期枚数');
  h.ench.slash='heavy';ok(R.runDeck(h).filter(x=>x==='slash~heavy').length===4,'刻印反映');ok(R.CARDS['slash~heavy'].e[0].v===8&&R.CARDS.slash.e[0].v===6,'刻印が元を変えない');

@@ -126,16 +126,20 @@ const FOES={
  archer:{n:'骸骨弓兵',hp:13,hand:2,pref:4,deck:['shot','shot','shot','walk','walk','tiptoe'],look:{g:'male',body:'skeleton',head:'head_skel',w:'w_bow',hat:'hat_hood',hatc:'charcoal'}},
  orc:{n:'オーク',hp:26,hand:3,pref:1,deck:['club','club','stab','walk','walk','guard'],look:{g:'male',skin:'green',head:'head_orc',top:'top_leather',legc:'brown',feet:'boots',w:'w_spear'}},
  cultist:{n:'邪教徒',hp:15,hand:2,pref:3,deck:['darkbolt','darkbolt','hex','fireball','walk','walk'],look:{g:'female',skin:'light',head:'head_f',top:'top_long',topc:'purple',legc:'black',hat:'hat_wizard',w:'w_staff'}},
+ necro:{n:'死霊使い',hp:15,hand:2,pref:3,deck:['raise','darkbolt','darkbolt','hex','walk','walk'],look:{g:'male',skin:'olive',head:'head_old_m',top:'top_long',topc:'charcoal',legc:'black',hat:'hat_hood',hatc:'charcoal',w:'w_gnarled'}},
+ witch:{n:'氷の魔女',hp:13,hand:2,pref:3,deck:['frost','frost','shatter','shatter','walk','walk'],look:{g:'female',skin:'blue',head:'head_f',hair:'hair_long',hairc:'white',top:'top_long',topc:'sky',legc:'white',hat:'hat_celestial',w:'w_crystal'}},
+ guardian:{n:'鉄の守り手',hp:20,hand:2,pref:1,t:{retainGuard:12},deck:['iron','guard','guard','slash','slash','walk','walk'],look:{g:'male',skin:'bronze',head:'head_m',top:'top_plate',topc:'steel',legc:'charcoal',feet:'boots',hat:'hat_great',hatc:'steel',w:'w_mace',sh:'sh_crusader'}},
+ wolf:{n:'人狼',hp:16,hand:2,pref:1,deck:['dashcut','slash','slash','sprint','walk','walk'],look:{g:'male',skin:'brown',head:'head_wolf',top:'top_sl',topc:'maroon',legc:'walnut'}},
  knight:{n:'黒騎士',hp:60,hand:4,pref:1,boss:1,deck:['slash','slash','slash','bosscharge','bosscharge','bossreap','iron','walk','walk','sprint'],look:{g:'male',skin:'zombie_green',head:'head_m',top:'top_plate',topc:'iron',legc:'black',feet:'boots',hat:'hat_bascinet',w:'w_sword'}},
 };
 const STAGES=[
  {n:'森の入口',theme:'forest',w:8,h:8,foes:['goblin','goblin']},
  {n:'川べりの小径',theme:'forest',w:10,h:8,foes:['goblin','goblin','archer']},
  {n:'荒れた墓地',theme:'grave',w:9,h:10,foes:['skel','zombie','zombie']},
- {n:'弓兵の丘',theme:'grave',w:12,h:8,foes:['skel','archer','archer']},
- {n:'雪の峠',theme:'snow',w:10,h:10,foes:['orc','goblin']},
- {n:'凍った湖',theme:'snow',w:11,h:9,foes:['orc','cultist','skel']},
- {n:'灰の火口',theme:'ash',w:10,h:11,foes:['orc','orc','cultist']},
+ {n:'弓兵の丘',theme:'grave',w:12,h:8,foes:['skel','archer','witch']},
+ {n:'雪の峠',theme:'snow',w:10,h:10,foes:['orc','wolf']},
+ {n:'凍った湖',theme:'snow',w:11,h:9,foes:['guardian','cultist','skel']},
+ {n:'灰の火口',theme:'ash',w:10,h:11,foes:['orc','necro','wolf']},
  {n:'黒騎士の間',theme:'ash',w:12,h:12,foes:['knight','skel'],boss:1},
 ];
 function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -269,9 +273,9 @@ function genMap(stage,R){const{w,h,theme}=stage;for(let tries=0;tries<300;tries+
  shuffle(spots,R);G.pSpot=pSpot;G.fSpots=spots;return G}
  throw new Error('map')}
 function heroUnit(id,side,run,x,y,R){const p=makeUnit(id,side,{n:run.name,hp:run.hp,maxHp:run.maxHp,deck:run.deck,hand:5,look:run.look,kind:'hero',pref:run.pref});const b=run.bonus||{};if(b.atk)p.status.str=b.atk;p.startBlock=b.guard||0;p.firstDraw=b.draw||0;p.walkBonus=b.walk||0;p.mana1=b.mana1||0;p.t=b.traits||{};p.x=x;p.y=y;p.facing=1;p.draw=shuffle(p.deck.slice(),R);const top=p.draw.length-1;if(!p.draw.slice(-5).some(i=>CARDS[i].t==='move')){const j=p.draw.findIndex(i=>CARDS[i].t==='move');if(j>=0)[p.draw[j],p.draw[top]]=[p.draw[top],p.draw[j]]}return p}
-function setupBattle(stageIdx,hero,seed){const R=mulberry(seed),s=STAGES[stageIdx],G=genMap(s,R);G.R=R;G.stage=stageIdx;G.turn=1;
+function setupBattle(stageIdx,hero,seed){const elite=hero.cur&&hero.cur.kind==='elite',R=mulberry(seed),s=STAGES[stageIdx],G=genMap(s,R);G.R=R;G.stage=stageIdx;G.turn=1;
  hero.deck.forEach(ensureCard);const p=heroUnit(0,'hero',hero,G.pSpot.x,G.pSpot.y,R);G.units.push(p);
- s.foes.forEach((f,i)=>{const d=FOES[f],df=hero.diff||0,u=makeUnit(i+1,'foe',{...d,hp:Math.round(d.hp*(1+df*.3)),kind:f});if(df)u.status.str=df;[u.x,u.y]=G.fSpots[i];u.facing=0;u.draw=shuffle(u.deck.slice(),R);u.preDraw=1;drawN(G,u,u.handSize);G.units.push(u)});return G}
+ (elite?[...s.foes,s.foes[0]]:s.foes).forEach((f,i)=>{const d=FOES[f],df=hero.diff||0,u=makeUnit(i+1,'foe',{...d,hp:Math.round(d.hp*(1+df*.3)*(elite?1.25:1)),kind:f});u.t=d.t||{};if(df)u.status.str=df;[u.x,u.y]=G.fSpots[i];u.facing=0;u.draw=shuffle(u.deck.slice(),R);u.preDraw=1;drawN(G,u,u.handSize);G.units.push(u)});return G}
 const alive=(G,side)=>G.units.filter(u=>!u.dead&&u.side===side);
 function skipsTurn(u){if(u.status.freeze>0){u.status.freeze--;u.frzCd=3;return true}return false}
 const outcome=G=>G.units[0].dead?'lose':!alive(G,'foe').length?'win':null;
@@ -408,5 +412,10 @@ function duelRun(h){const r=newRun(h,1),lvHp=(LEVEL_CAP-h.level)*2;r.hp+=lvHp;r.
 const DUEL_THEMES=['forest','grave','snow','ash'],DUEL_TURNS=30;
 function setupDuel(a,b,seed){const R0=mulberry(seed),s={n:'模擬戦',theme:DUEL_THEMES[Math.floor(R0()*4)],w:10,h:10,foes:['x']},G=genMap(s,R0);G.R=R0;G.stage=-1;G.turn=1;G.duel=true;[...a.deck,...b.deck].forEach(ensureCard);G.units.push(heroUnit(0,'hero',a,G.pSpot.x,G.pSpot.y,R0));const[fx,fy]=G.fSpots[0],f=heroUnit(1,'foe',b,fx,fy,R0);f.firstDraw+=1;f.preDraw=1;drawN(G,f,f.handSize);G.units.push(f);return G}
 function duelResult(G){const o=outcome(G);if(o)return o;if(G.turn<=DUEL_TURNS)return null;const a=G.units[0],b=G.units[1],p=a.hp/a.maxHp,q=b.hp/b.maxHp;return p>q?'win':p<q?'lose':'draw'}
-function newRun(h,seed){const s=heroStats(h),k=CLASSES[h.cls];const known=TREES[h.cls].filter(n=>n.card&&(h.tree||{})[n.id]).map(n=>n.card);return{extraPool:known,heroId:h.id,pref:{sword:1,spear:2,mage:3,bow:3}[h.cls],name:h.name,cls:h.cls,hp:s.maxHp,maxHp:s.maxHp,bonus:s.bonus,deck:h.deck?runDeck(h):[...k.deck,...s.cards],look:heroLook(h),diff:h.diff||0,stage:0,seed:seed||(Date.now()&0xffffff)}}
-if(typeof module!=='undefined')module.exports={CARDS,CLASSES,FOES,STAGES,REWARD,CLASS_POOL,setupBattle,chooseAI,play,targets,startTurn,endTurn,outcome,alive,newRun,canPlay,mulberry,shuffle,areaTiles,ITEMS,newHero,heroStats,gainXp,stageXp,rollDrop,rollRune,perkLeft,RUNES,ensureCard,runeSlots,initBuild,trimDeck,deckIssues,runDeck,switchBuild,availCount,addGranted,buildCode,fromCode,duelRun,setupDuel,duelResult,DUEL_TURNS,activeSets,SETS,ITEM_SET,DECK_MIN,DECK_MAX,COPY_MAX,baseCard,TREES,NODE,JOBS,canLearn,learn,forget,canForget,jobLine,jobName,costOf,calcDmg,skipsTurn,threatMap};
+// 道のり ----------------------------------------------
+const NODE_KINDS={battle:{n:'戦闘',icon:'crossed-swords',d:'通常の戦闘。カード報酬あり'},elite:{n:'精鋭',icon:'daemon-skull',d:'敵が増えて強い。装備が確定で出る'},rest:{n:'休憩',icon:'campfire',d:'HPを回復するか、カードを1枚捨てる'},chest:{n:'宝箱',icon:'locked-chest',d:'この旅の間だけ効く祝福を選ぶ'},event:{n:'出来事',icon:'perspective-dice-six',d:'何が起きるかは行ってみるまで分からない'},boss:{n:'黒騎士',icon:'visored-helm',d:'最後の戦い'}};
+const BOONS={atk:{n:'戦神の加護',d:'攻撃+1',k:'atk',v:1},guard:{n:'守護の加護',d:'開始ガード+5',k:'guard',v:5},walk:{n:'風の加護',d:'歩く距離+1',k:'walk',v:1},draw:{n:'知恵の加護',d:'初手+1',k:'draw',v:1},heal:{n:'癒しの加護',d:'戦闘後の回復+15%',k:'heal',v:15},mana:{n:'魔力の加護',d:'初ターンのマナ+1',k:'mana1',v:1},hp:{n:'生命の加護',d:'最大HP+10',k:'hp',v:10}};
+function genRoute(seed){const R=mulberry(seed^0x51ed),f=[];for(let i=0;i<STAGES.length;i++){if(STAGES[i].boss){f.push(['boss']);continue}if(i===0){f.push(['battle','battle']);continue}const n=2+(R()<.5?1:0),o=[];const pool=i>=2?['battle','battle','elite','rest','chest','event']:['battle','battle','rest','event','chest'];while(o.length<n){const k=pool[Math.floor(R()*pool.length)];if(!o.includes(k)||k==='battle')o.push(k)}if(!o.some(k=>k==='battle'||k==='elite'))o[0]='battle';f.push(o)}return f}
+function applyBoon(run,id){const b=BOONS[id];if(b.k==='hp'){run.maxHp+=b.v;run.hp+=b.v}else run.bonus[b.k]=(run.bonus[b.k]||0)+b.v;(run.boons=run.boons||[]).push(id)}
+function newRun(h,seed){const s=heroStats(h),k=CLASSES[h.cls];const known=TREES[h.cls].filter(n=>n.card&&(h.tree||{})[n.id]).map(n=>n.card);return{extraPool:known,heroId:h.id,pref:{sword:1,spear:2,mage:3,bow:3}[h.cls],name:h.name,cls:h.cls,hp:s.maxHp,maxHp:s.maxHp,bonus:s.bonus,deck:h.deck?runDeck(h):[...k.deck,...s.cards],look:heroLook(h),diff:h.diff||0,route:genRoute(seed||(Date.now()&0xffffff)),boons:[],stage:0,seed:seed||(Date.now()&0xffffff)}}
+if(typeof module!=='undefined')module.exports={CARDS,CLASSES,FOES,STAGES,REWARD,CLASS_POOL,setupBattle,chooseAI,play,targets,startTurn,endTurn,outcome,alive,newRun,canPlay,mulberry,shuffle,areaTiles,ITEMS,newHero,heroStats,gainXp,stageXp,rollDrop,rollRune,perkLeft,RUNES,ensureCard,runeSlots,initBuild,trimDeck,deckIssues,runDeck,switchBuild,availCount,addGranted,buildCode,fromCode,duelRun,setupDuel,duelResult,DUEL_TURNS,activeSets,SETS,ITEM_SET,DECK_MIN,DECK_MAX,COPY_MAX,baseCard,TREES,NODE,JOBS,canLearn,learn,forget,canForget,jobLine,jobName,costOf,calcDmg,skipsTurn,threatMap,genRoute,applyBoon,BOONS,NODE_KINDS};
