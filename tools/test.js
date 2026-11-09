@@ -29,7 +29,7 @@ a=arena({});a.u.mana=0;P(a,'timewarp',{x:3,y:3});ok(a.u.mana===2,'timewarp');
 a=arena({retainGuard:25});a.u.block=40;R.startTurn(a.G,a.u);ok(a.u.block===25,'retainGuard');
 a=arena({hpCost:3},[[3,2]]);a.u.mana=0;ok(R.canPlay(a.G,a.u,R.CARDS.slash),'hpCost可');P(a,'slash',{x:3,y:2});ok(a.u.hp===27&&a.u.mana===0&&a.f.hp===44,'hpCost支払い');a=arena({hpCost:3});a.u.mana=0;a.u.hp=3;ok(!R.canPlay(a.G,a.u,R.CARDS.slash),'hpCost致死不可');a=arena({});a.u.mana=0;ok(!R.canPlay(a.G,a.u,R.CARDS.slash),'hpCostなし');
 a=arena({combo:3},[[3,2]]);P(a,'bolt',{x:3,y:2});ok(a.f.hp===46&&a.u.nextAtk===3,'combo魔法');a.u.mana=3;P(a,'slash',{x:3,y:2});ok(a.f.hp===46-9&&a.u.nextAtk===0,'combo武器強化');ok(R.costOf(a.u,R.CARDS.bolt)===0,'combo無料');P(a,'bolt',{x:3,y:2});ok(a.u.mana===2,'combo無料消費');ok(R.costOf(a.u,R.CARDS.fireball)===2,'combo切替え');
-a=arena({},[[3,2]]);a.u.hand=['soar'];R.play(a.G,a.u,0,{x:3,y:0});ok(a.u.air&&!R.canPlay(a.G,a.u,R.CARDS.slash),'soar空中');ok(!R.targets(a.G,a.f,R.CARDS.stab).length,'soar回避');a.f.y=1;R.startTurn(a.G,a.u);ok(!a.u.air&&a.u.y===0&&a.f.hp===41,'soar降下');
+a=arena({},[[3,2]]);a.u.hand=['soar'];R.play(a.G,a.u,0,{x:3,y:0});ok(a.u.air&&!R.canPlay(a.G,a.u,R.CARDS.slash),'soar空中');ok(!R.targets(a.G,a.f,R.CARDS.stab).length,'soar回避');a.f.y=1;R.startTurn(a.G,a.u);ok(!a.u.air&&a.u.y===0&&a.f.hp===42,'soar降下');
 a=arena({wallDmg:0,collide:6},[[3,2],[3,1]]);P(a,'buttstrike',{x:3,y:2});ok(a.G.units[2].hp===44&&a.f.hp===44,'collide');
 a=arena({},[[3,1]]);P(a,'swap',{x:3,y:1});ok(a.u.y===1&&a.f.y===3&&a.f.hp===47,'swap');
 a=arena({overwatch:5},[[3,0]]);a.u.mana=2;R.endTurn(a.G,a.u);ok(a.u.over===2,'over溜め');a.f.hand=['walk'];R.play(a.G,a.f,0,{x:3,y:1});ok(a.f.hp===45&&a.u.over===1,'over発動');a.f.hand=['tiptoe'];R.play(a.G,a.f,0,{x:3,y:2});ok(a.f.hp===40&&a.u.over===0,'over2回');R.startTurn(a.G,a.u);ok(a.u.over===0,'overリセット');
@@ -38,7 +38,7 @@ a=arena({});P(a,'deepfreeze',{x:3,y:1});ok(a.f.status.freeze===1&&R.skipsTurn(a.
 a=arena({summonAtk:2,summonHp:8});P(a,'raise',{x:3,y:2});const al=a.G.units[2];ok(al&&al.side==='hero'&&al.summon&&al.status.str===2&&al.maxHp===25,'summon');P(a,'raise',{x:2,y:3});ok(!R.canPlay(a.G,a.u,R.CARDS.raise),'summon上限');a.u.dead=false;al.dead=true;a.f.dead=true;a.G.units[3].dead=true;ok(R.outcome(a.G)==='win','outcome');a=arena({});P(a,'raise',{x:3,y:2});a.u.dead=true;ok(R.outcome(a.G)==='lose','本体死亡');
 a=arena({stillMana:1});R.endTurn(a.G,a.u);R.startTurn(a.G,a.u);ok(a.u.mana===4,'stillMana');P(a,'walk',{x:3,y:1});R.endTurn(a.G,a.u);R.startTurn(a.G,a.u);ok(a.u.mana===3,'stillMana移動');
 a=arena({});P(a,'mark',{x:3,y:1});P(a,'bolt',{x:3,y:1});ok(a.f.hp===43,'mark');
-a=arena({});P(a,'trap',{x:3,y:1});a.f.x=3;a.f.y=0;a.f.hand=['tiptoe'];R.play(a.G,a.f,0,{x:3,y:1});ok(a.f.hp===44&&a.f.status.root===1&&!a.G.traps.length,'trap');
+a=arena({});P(a,'trap',{x:3,y:1});a.f.x=3;a.f.y=0;a.f.hand=['tiptoe'];R.play(a.G,a.f,0,{x:3,y:1});ok(a.f.hp===41&&a.f.status.root===1&&!a.G.traps.length,'trap');
 a=arena({bounce:1},[[3,1],[4,1]]);P(a,'bolt',{x:3,y:1});ok(a.f.hp===46&&a.G.units[2].hp===48,'bounce');
 // カード定義の全数実行
 for(const [id,c] of Object.entries(R.CARDS)){let b=arena({},[[3,1],[4,3],[3,2]]);let ts=R.targets(b.G,b.u,c);if(!ts.length){b=arena({},[[3,0]]);ts=R.targets(b.G,b.u,c)}b.u.hand=[id];b.u.mana=3;b.u.discard=['walk','walk'];ok(ts.length,'対象なし '+id);if(!ts.length)continue;try{R.play(b.G,b.u,0,ts[0])}catch(e){ok(false,'throw '+id+' '+e.message)}}
@@ -52,6 +52,7 @@ for(const [k,t] of Object.entries(R.TREES)){const ids=new Set(t.map(n=>n.id));co
  const h2=R.newHero(2,'x',k,{});h2.level=9;for(const id of [k+'.root',k+'.r1l',k+'.a.intro'])R.learn(h2,id);ok(!R.canLearn(h2,k+'.a.cls'),'Lv10制限 '+k);h2.level=10;ok(R.canLearn(h2,k+'.a.cls'),'Lv10で転職 '+k);
 }
 a=arena({});P(a,'deepfreeze',{x:3,y:1});R.skipsTurn(a.f);R.endTurn(a.G,a.f);a.u.mana=3;P(a,'deepfreeze',{x:3,y:1});ok(!a.f.status.freeze&&a.f.status.root===1,'連続凍結不可');
+a=arena({cornerAtk:2},[[3,1]]);a.G.cells[0][3].t='block';P(a,'bolt',{x:3,y:1});ok(a.f.hp===44,'壁際');
 // デッキ、刻印、ビルド、対戦
 {const h=R.newHero(1,'x','sword',{});ok(R.deckIssues(h).length===0,'初期デッキ有効');ok(h.deck.length===12,'初期枚数');
  h.ench.slash='heavy';ok(R.runDeck(h).filter(x=>x==='slash~heavy').length===4,'刻印反映');ok(R.CARDS['slash~heavy'].e[0].v===8&&R.CARDS.slash.e[0].v===6,'刻印が元を変えない');
