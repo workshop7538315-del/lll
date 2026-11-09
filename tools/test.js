@@ -51,4 +51,18 @@ for(const [k,t] of Object.entries(R.TREES)){const ids=new Set(t.map(n=>n.id));co
  const m=t.find(n=>n.id===k+'.a.mas');console.log(k,'習得',Object.keys(h.tree).length,'残',R.perkLeft(h),R.jobName(h),'最上級到達',!!h.tree[m.id]);
  const h2=R.newHero(2,'x',k,{});h2.level=9;for(const id of [k+'.root',k+'.r1l',k+'.a.intro'])R.learn(h2,id);ok(!R.canLearn(h2,k+'.a.cls'),'Lv10制限 '+k);h2.level=10;ok(R.canLearn(h2,k+'.a.cls'),'Lv10で転職 '+k);
 }
+a=arena({});P(a,'deepfreeze',{x:3,y:1});R.skipsTurn(a.f);R.endTurn(a.G,a.f);a.u.mana=3;P(a,'deepfreeze',{x:3,y:1});ok(!a.f.status.freeze&&a.f.status.root===1,'連続凍結不可');
+// デッキ、刻印、ビルド、対戦
+{const h=R.newHero(1,'x','sword',{});ok(R.deckIssues(h).length===0,'初期デッキ有効');ok(h.deck.length===12,'初期枚数');
+ h.ench.slash='heavy';ok(R.runDeck(h).filter(x=>x==='slash~heavy').length===4,'刻印反映');ok(R.CARDS['slash~heavy'].e[0].v===8&&R.CARDS.slash.e[0].v===6,'刻印が元を変えない');
+ for(const [k,r] of Object.entries(R.RUNES))for(const [id,c] of Object.entries(R.CARDS)){if(c.rune||id.includes('~')||c.foe||!r.ok(c))continue;const cid=R.ensureCard(id+'~'+k);const b=arena({},[[3,1],[4,3]]);let ts=R.targets(b.G,b.u,R.CARDS[cid]);if(!ts.length){const c2=arena({},[[3,0]]);ts=R.targets(c2.G,c2.u,R.CARDS[cid]);if(!ts.length)continue;c2.u.hand=[cid];c2.u.mana=3;c2.u.discard=['walk'];try{R.play(c2.G,c2.u,0,ts[0])}catch(e){ok(false,cid+e)}continue}b.u.hand=[cid];b.u.mana=3;b.u.discard=['walk'];try{R.play(b.G,b.u,0,ts[0])}catch(e){ok(false,cid+' '+e.message)}}
+ const m=R.CARDS['bolt~light']||R.CARDS[R.ensureCard('bolt~light')];ok(m.c===0,'軽量');ok(R.CARDS[R.ensureCard('bolt~reach')].r.n===5,'長柄');
+ h.level=30;h.deck=h.deck.filter(x=>x!=='walk'&&x!=='tiptoe');ok(R.deckIssues(h).length>0,'移動不足');
+ h.deck=[...Array(5).fill('slash')];R.trimDeck(h);ok(h.deck.length===4,'所持数で制限');
+ const a2=R.newHero(1,'x','spear',{});a2.level=30;R.learn(a2,'spear.root');a2.tree['spear.a.intro']=undefined;delete a2.tree['spear.a.intro'];R.learn(a2,'spear.r1l');R.learn(a2,'spear.a.intro');ok(a2.deck.includes('vault'),'習得で自動追加');R.forget(a2,'spear.a.intro');ok(!a2.deck.includes('vault'),'戻すと除外');
+ const b2=R.newHero(1,'x','bow',{});R.learn(b2,'bow.root');b2.level=5;R.learn(b2,'bow.root');const t0=JSON.stringify(b2.tree);R.switchBuild(b2,1);ok(b2.cur===1&&JSON.stringify(b2.tree)===t0,'枠切替でコピー');b2.tree={};b2.deck.pop();R.switchBuild(b2,0);ok(JSON.stringify(b2.tree)===t0&&b2.deck.length===12,'枠復元');
+ const eq=R.newHero(1,'x','sword',{});eq.equip={weapon:'sw_iron',armor:'ar_chain',off:'of_buckler',charm:'ch_iron'};ok(R.heroStats(eq).bonus.guard>=3+4,'セット2');const hp2=R.heroStats(eq).maxHp;ok(hp2>=R.CLASSES.sword.hp+9+4+12,'セット3');
+ const c1=R.newHero(1,'A','mage',{g:'male'});c1.level=12;c1.ench.bolt='heavy';const o=R.fromCode(JSON.parse(JSON.stringify(R.buildCode(c1))));ok(o.cls==='mage'&&o.level===12&&o.ench.bolt==='heavy','コード往復');try{R.fromCode({v:1,c:'mage',l:{},d:['slash']});ok(false,'不正コード')}catch(e){}
+ const bad=R.fromCode({v:1,n:'x',c:'mage',l:{},lv:99,t:{'sword.root':1,'mage.root':9},e:{weapon:'ch_star'},d:Array(14).fill('bolt').concat(['stab','__x']),en:{bolt:'nope'}});ok(bad.level===30&&bad.tree['mage.root']===1&&!bad.tree['sword.root']&&bad.equip.weapon===R.ITEMS?true:bad.equip.weapon==='st_simple','コード検証');ok(!bad.deck.includes('stab')&&!bad.deck.includes('__x'),'敵専用除外');
+ const G=R.setupDuel(R.duelRun(R.newHero(1,'a','sword',{})),R.duelRun(R.newHero(2,'b','bow',{})),7);ok(G.units.length===2&&G.units[1].side==='foe'&&G.units[0].maxHp===G.units[1].maxHp+10,'対戦準備');G.turn=99;G.units[0].hp=1;ok(R.duelResult(G)==='lose','判定');}
 console.log(fail?fail+'件失敗':'全て成功');process.exit(fail?1:0)

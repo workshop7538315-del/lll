@@ -89,7 +89,7 @@ const CARDS={
  collideslam:{n:'叩きつけ',c:2,t:'atk',icon:'pummeled',anim:'weapon',r:{s:'adj'},aim:'enemy',e:[dmg(5),{k:'push',v:4}],d:'隣の敵に5ダメージ、4マス押す。'},
  brace:{n:'構え',c:0,t:'skill',icon:'spear-feather',r:{s:'self'},aim:'self',e:[block(3),{k:'over',v:1}],d:'ガード3。迎撃の回数+1。'},
  thousand:{n:'千本突き',c:3,t:'atk',icon:'stone-spear',anim:'weapon',r:{s:'line',n:3,pierce:1},aim:'any',a:'pierce',e:[dmg(6),dmg(6),dmg(6)],d:'直線3マスを貫き6の3回攻撃。'},
- deepfreeze:{n:'氷結',c:2,t:'atk',icon:'frozen-block',anim:'spell',fx:'ice',r:{s:'dia',n:4},aim:'enemy',e:[dmg(3),st('freeze',1)],d:'3ダメージ。凍結：敵は次の手番に何もできない（ボスには拘束）。'},
+ deepfreeze:{n:'氷結',c:2,t:'atk',icon:'frozen-block',anim:'spell',fx:'ice',r:{s:'dia',n:4},aim:'enemy',e:[dmg(3),st('freeze',1)],d:'3ダメージ。凍結：敵は次の手番に何もできない。解けた直後とボスには拘束になる。'},
  raise:{n:'骸骨召喚',c:2,t:'skill',icon:'raise-skeleton',anim:'spell',r:{s:'dia',n:3},aim:'empty',e:[{k:'summon',f:'skel'}],d:'空きマスに味方の骸骨兵を呼ぶ。最大2体。'},
  raisezombie:{n:'亡者召喚',c:1,t:'skill',icon:'raise-zombie',anim:'spell',r:{s:'dia',n:3},aim:'empty',e:[{k:'summon',f:'zombie'}],d:'空きマスに味方の亡者を呼ぶ。'},
  drain:{n:'魂吸い',c:1,t:'atk',icon:'life-tap',anim:'spell',fx:'dark',r:{s:'dia',n:4},aim:'enemy',e:[dmg(4),{k:'heal',v:3}],d:'射程4の敵に4ダメージ、HP3回復。'},
@@ -226,7 +226,7 @@ function play(G,u,idx,t){const id=u.hand[idx],c=CARDS[id],evs=[],T=u.t||{},F=u.f
   case'heal':{const n=Math.min(e.v,u.maxHp-u.hp);u.hp+=n;evs.push({t:'heal',u:u.id,v:n});break}
   case'draw':drawN(G,u,e.v,evs);break;
   case'mana':u.mana+=e.v;evs.push({t:'mana',u:u.id,v:e.v});break;
-  case'status':if(e.self){u.status[e.s]=(u.status[e.s]||0)+e.v;evs.push({t:'status',u:u.id,s:e.s,v:e.v})}else for(const v of victims)if(!v.dead){let nv=e.v+(e.s==='burn'?(T.burnPlus||0):0),sk=e.s;if(sk==='freeze'&&v.boss){sk='root';nv=1}if(sk==='burn'&&T.spread)v.spread=1;v.status[sk]=(v.status[sk]||0)+nv;evs.push({t:'status',u:v.id,s:e.s,v:nv})}break;
+  case'status':if(e.self){u.status[e.s]=(u.status[e.s]||0)+e.v;evs.push({t:'status',u:u.id,s:e.s,v:e.v})}else for(const v of victims)if(!v.dead){let nv=e.v+(e.s==='burn'?(T.burnPlus||0):0),sk=e.s;if(sk==='freeze'&&(v.boss||v.frzCd>0)){sk='root';nv=1}if(sk==='burn'&&T.spread)v.spread=1;v.status[sk]=(v.status[sk]||0)+nv;evs.push({t:'status',u:v.id,s:e.s,v:nv})}break;
   case'push':for(const v of victims){if(v.dead)continue;let[dx,dy]=[Math.sign(v.x-u.x),Math.sign(v.y-u.y)];displace(G,v,dx,dy,e.v+(T.pushExtra||0),evs,u)}break;
   case'pull':for(const v of victims){if(v.dead)continue;let[dx,dy]=[Math.sign(u.x-v.x),Math.sign(u.y-v.y)];const n=Math.min(e.v,Math.max(Math.abs(u.x-v.x),Math.abs(u.y-v.y))-1);if(n>0)displace(G,v,dx,dy,n,evs)}break;
   case'retreat':{const foe=victims[0]||{x:t.x,y:t.y};const b=retreatTile(G,u,{x:foe.x,y:foe.y,n:e.v});if(b){const p=pathTo(G,u,e.v,b.x,b.y);F.moved=1;u.x=b.x;u.y=b.y;evs.push({t:'move',u:u.id,p});afterMove(G,u,evs)}break}
@@ -238,7 +238,7 @@ function play(G,u,idx,t){const id=u.hand[idx],c=CARDS[id],evs=[],T=u.t||{},F=u.f
 function bounce(G,a,v,amt,n,evs){let cur=v,hit=new Set([v.id]),d=Math.floor(amt/2);for(let i=0;i<n&&d>0;i++){const nx=G.units.filter(x=>!x.dead&&!x.air&&foeOf(a,x)&&!hit.has(x.id)&&man(x.x,x.y,cur.x,cur.y)<=3).sort((p,q)=>man(p.x,p.y,cur.x,cur.y)-man(q.x,q.y,cur.x,cur.y))[0];if(!nx)break;hit.add(nx.id);evs.push({t:'bounce',from:cur.id,u:nx.id});hurt(G,nx,d,evs,'hit');cur=nx;d=Math.floor(d/2)}}
 function thorn(G,a,v,evs){const n=v.t&&v.t.thorns;if(n&&!a.dead&&!v.dead&&Math.max(Math.abs(a.x-v.x),Math.abs(a.y-v.y))<=1)hurt(G,a,n,evs,'thorn')}
 function startTurn(G,u){const evs=[];const T0=u.t||{};u.block=T0.retainGuard?Math.min(u.block,T0.retainGuard):0;u.flags={};u.over=0;if(u.air){const a=u.air;u.air=null;let dest=null;if(free(G,a.x,a.y))dest=a;else for(const[dx,dy]of DIRS8)if(free(G,a.x+dx,a.y+dy)){dest={x:a.x+dx,y:a.y+dy};break}if(!dest)dest={x:u.x,y:u.y};const p=[[u.x,u.y],[dest.x,dest.y]];u.x=dest.x;u.y=dest.y;evs.push({t:'move',u:u.id,p,jump:1});const near=DIRS8.map(([q,r])=>unitAt(G,dest.x+q,dest.y+r)).filter(v=>v&&foeOf(u,v));evs.push({t:'swing',u:u.id,x:dest.x,y:dest.y,anim:'weapon',card:'slash',area:DIRS8.map(([q,r])=>({x:dest.x+q,y:dest.y+r})).filter(t=>inb(G,t.x,t.y)&&!solid(G,t.x,t.y))});for(const v of near)hurt(G,v,a.dmg+(u.status.str||0),evs,'hit');afterMove(G,u,evs)}u.mana=u.maxMana+(u.manaNext||0);u.manaNext=0;let extra=0;if(!u.opened){u.opened=1;u.block+=u.startBlock||0;u.mana+=u.mana1||0;extra=u.firstDraw||0}if(u.status.burn>0){if(u.spread)for(const[dx,dy]of DIRS4){const o=unitAt(G,u.x+dx,u.y+dy);if(o&&o.side===u.side&&!o.dead){o.status.burn=(o.status.burn||0)+1;o.spread=1;evs.push({t:'status',u:o.id,s:'burn',v:1})}}hurt(G,u,u.status.burn,evs,'burn');u.status.burn--}drawN(G,u,Math.max(0,u.handSize+extra-u.hand.length),evs);return evs}
-function endTurn(G,u){const evs=[];if(u.t&&u.t.overwatch&&!u.dead&&!u.air)u.over=(u.over||0)+u.mana+(u.t.overPlus||0);if(u.t&&u.t.stillMana&&!(u.flags&&u.flags.moved))u.manaNext=u.t.stillMana;if(u.t&&u.t.endGuard&&u.mana>0&&!u.dead){const g=u.t.endGuard*Math.min(3,u.mana);u.block+=g;evs.push({t:'block',u:u.id,v:g})}u.discard.push(...u.hand);u.hand=[];for(const s of['root','weak','vuln','mark'])if(u.status[s]>0)u.status[s]--;if(!u.dead&&!u.air&&G.cells[u.y][u.x].t==='fire'&&!(u.t&&u.t.fireSafe))hurt(G,u,3,evs,'fire');return evs}
+function endTurn(G,u){const evs=[];if(u.t&&u.t.overwatch&&!u.dead&&!u.air)u.over=(u.over||0)+u.mana+(u.t.overPlus||0);if(u.t&&u.t.stillMana&&!(u.flags&&u.flags.moved))u.manaNext=u.t.stillMana;if(u.t&&u.t.endGuard&&u.mana>0&&!u.dead){const g=u.t.endGuard*Math.min(3,u.mana);u.block+=g;evs.push({t:'block',u:u.id,v:g})}u.discard.push(...u.hand);u.hand=[];if(u.frzCd>0)u.frzCd--;for(const s of['root','weak','vuln','mark'])if(u.status[s]>0)u.status[s]--;if(!u.dead&&!u.air&&G.cells[u.y][u.x].t==='fire'&&!(u.t&&u.t.fireSafe))hurt(G,u,3,evs,'fire');return evs}
 function makeUnit(id,side,o){const u={id,side,x:0,y:0,hp:o.hp,maxHp:o.maxHp||o.hp,mana:3,maxMana:3,block:0,status:{},hand:[],discard:[],draw:[],exhaust:[],handSize:o.hand||5,deck:o.deck.slice(),name:o.n,look:o.look,pref:o.pref||1,boss:o.boss,kind:o.kind};return u}
 function genMap(stage,R){const{w,h,theme}=stage;for(let tries=0;tries<300;tries++){const cells=[];for(let y=0;y<h;y++){const r=[];for(let x=0;x<w;x++)r.push({t:'floor',v:R()});cells.push(r)}
  const G={w,h,cells,theme,units:[]};
@@ -256,11 +256,12 @@ function genMap(stage,R){const{w,h,theme}=stage;for(let tries=0;tries<300;tries+
  if(spots.length<stage.foes.length+3)continue;
  shuffle(spots,R);G.pSpot=pSpot;G.fSpots=spots;return G}
  throw new Error('map')}
+function heroUnit(id,side,run,x,y,R){const p=makeUnit(id,side,{n:run.name,hp:run.hp,maxHp:run.maxHp,deck:run.deck,hand:5,look:run.look,kind:'hero',pref:run.pref});const b=run.bonus||{};if(b.atk)p.status.str=b.atk;p.startBlock=b.guard||0;p.firstDraw=b.draw||0;p.walkBonus=b.walk||0;p.mana1=b.mana1||0;p.t=b.traits||{};p.x=x;p.y=y;p.facing=1;p.draw=shuffle(p.deck.slice(),R);const top=p.draw.length-1;if(!p.draw.slice(-5).some(i=>CARDS[i].t==='move')){const j=p.draw.findIndex(i=>CARDS[i].t==='move');if(j>=0)[p.draw[j],p.draw[top]]=[p.draw[top],p.draw[j]]}return p}
 function setupBattle(stageIdx,hero,seed){const R=mulberry(seed),s=STAGES[stageIdx],G=genMap(s,R);G.R=R;G.stage=stageIdx;G.turn=1;
- const p=makeUnit(0,'hero',{n:hero.name,hp:hero.hp,maxHp:hero.maxHp,deck:hero.deck,hand:5,look:hero.look,kind:'hero',pref:hero.pref});{const b=hero.bonus||{};if(b.atk)p.status.str=b.atk;p.startBlock=b.guard||0;p.firstDraw=b.draw||0;p.walkBonus=b.walk||0;p.mana1=b.mana1||0;p.t=b.traits||{}}p.x=G.pSpot.x;p.y=G.pSpot.y;p.facing=1;p.draw=shuffle(p.deck.slice(),R);{const top=p.draw.length-1;if(!p.draw.slice(-5).some(id=>CARDS[id].t==='move')){const j=p.draw.findIndex(id=>CARDS[id].t==='move');if(j>=0)[p.draw[j],p.draw[top]]=[p.draw[top],p.draw[j]]}}G.units.push(p);
+ hero.deck.forEach(ensureCard);const p=heroUnit(0,'hero',hero,G.pSpot.x,G.pSpot.y,R);G.units.push(p);
  s.foes.forEach((f,i)=>{const d=FOES[f],df=hero.diff||0,u=makeUnit(i+1,'foe',{...d,hp:Math.round(d.hp*(1+df*.3)),kind:f});if(df)u.status.str=df;[u.x,u.y]=G.fSpots[i];u.facing=0;u.draw=shuffle(u.deck.slice(),R);G.units.push(u)});return G}
 const alive=(G,side)=>G.units.filter(u=>!u.dead&&u.side===side);
-function skipsTurn(u){if(u.status.freeze>0){u.status.freeze--;return true}return false}
+function skipsTurn(u){if(u.status.freeze>0){u.status.freeze--;u.frzCd=2;return true}return false}
 const outcome=G=>G.units[0].dead?'lose':!alive(G,'foe').length?'win':null;
 // AI ------------------------------------------------
 function estHit(G,u,c,t){let sum=0,kill=0;for(const p of areaTiles(G,u,c,t)){const v=unitAt(G,p.x,p.y);if(!v)continue;if(!foeOf(u,v))continue;let hit=0;for(const e of c.e){if(e.k==='dmg')hit+=calcDmg(u,v,e.v,c);if(e.k==='dmgBlock')hit+=calcDmg(u,v,Math.floor(u.block/2)+e.v,c)}const eff=Math.max(0,hit-v.block);sum+=eff+(c.e.some(e=>e.k==='status')?2:0);if(eff>=v.hp)kill++}return{sum,kill}}
@@ -328,29 +329,70 @@ const TREES={
  {intro:'sidestep',cls:J('ranger','狩人','hood',6,{moveFree:1},'trap','罠猟','マスに見えない罠を置ける。各手番の最初の移動カードのコスト0。'),r4o:'net',r4i:TR('身のこなし','acrobatic',{moveGuard:2},'移動のたびにガード+2'),r5o:TR('罠の知識','wolf-trap',{trapDmg:4,rootDmg:3},'罠のダメージ+4、拘束中の敵への攻撃+3'),r5i:'trapfire',mas:J('phantom','影の狩人','cloak-dagger',8,{moveGuard:2,trapDmg:4},'volley','影の罠師','移動のガード+2、罠のダメージ+4。'),r7o:'smokestep',r7i:TR('影縫い','shadow-follower',{killDraw:1,killMana:1},'敵を倒すと1枚引き、マナ+1')},
  {intro:'shot',cls:J('trickshot','曲射手','ricochet',5,{bounce:1},'ricochet','跳弾','単体攻撃が近くの別の敵へ半分のダメージで跳ねる。'),r4o:'backshot',r4i:TR('連鎖の勘','chain-mail',{firstAtk:1,atkGuard:1},'最初の攻撃+1、攻撃時ガード+1'),r5o:TR('手数','quick-slash',{bounce:1},'跳弾の回数+1'),r5i:'pin',mas:J('godbow','神弓','high-shot',8,{bounce:1,distAtk:2},'stardrop','無尽の矢','跳弾の回数+1。距離4以上の攻撃+2。'),r7o:'rain',r7i:TR('流星','falling-star',{killMana:1,killDraw:1},'敵を倒すとマナ+1、1枚引く')}),
 };
+const SETS={guard:{n:'鉄壁',b2:{guard:4},b3:{hp:12,trait:{atkGuard:2}},d2:'開始ガード+4',d3:'最大HP+12、攻撃時ガード+2'},swift:{n:'疾風',b2:{walk:1},b3:{draw:1,trait:{moveGuard:2}},d2:'歩く距離+1',d3:'初手+1、移動ガード+2'},mind:{n:'叡智',b2:{draw:1},b3:{mana1:1,trait:{killDraw:1}},d2:'初手+1',d3:'初ターンのマナ+1、撃破で1枚引く'},war:{n:'闘志',b2:{atk:1},b3:{atk:1,trait:{firstAtk:2,killHeal:3}},d2:'攻撃+1',d3:'攻撃+1、最初の攻撃+2、撃破でHP3回復'}};
+const ITEM_SET={ar_chain:'guard',ar_plate:'guard',of_buckler:'guard',of_crusader:'guard',of_spartan:'guard',ch_iron:'guard',sw_dagger:'swift',sp_long:'swift',st_wand:'swift',bw_recurve:'swift',ar_shadow:'swift',ch_boot:'swift',ch_wing:'swift',ch_hand:'swift',st_loop:'mind',st_diamond:'mind',ar_robe:'mind',of_tome:'mind',ch_book:'mind',ch_eye:'mind',ch_star:'mind',sw_mace:'war',sw_axe:'war',sp_halberd:'war',sp_scythe:'war',bw_great:'war',ar_leather:'war',ar_dragon:'war',of_quiver:'war',ch_lion:'war',ch_heart:'war'};
+function activeSets(h){const c={};for(const s of['weapon','armor','off','charm']){const id=h.equip[s];if(id&&itemOk(h,ITEMS[id])&&ITEM_SET[id])c[ITEM_SET[id]]=(c[ITEM_SET[id]]||0)+1}return c}
 const NODE={};for(const k in TREES)for(const n of TREES[k])NODE[n.id]=n;
 const STARTER={sword:'sw_iron',spear:'sp_iron',mage:'st_simple',bow:'bw_normal'};
 const LEVEL_CAP=30,xpNeed=lv=>90+lv*70;
-function newHero(id,name,cls,look){return{id,name:name||'旅人',cls,look,level:1,xp:0,tree:{},equip:{weapon:STARTER[cls],armor:'ar_cloth',off:'',charm:''},inv:[STARTER[cls],'ar_cloth'],wins:0,best:0}}
+function newHero(id,name,cls,look){return initBuild({id,name:name||'旅人',cls,look,level:1,xp:0,tree:{},equip:{weapon:STARTER[cls],armor:'ar_cloth',off:'',charm:''},inv:[STARTER[cls],'ar_cloth'],wins:0,best:0})}
 function itemDesc(it){const a=[];if(it.atk)a.push('攻撃+'+it.atk);if(it.hp)a.push('HP'+(it.hp>0?'+':'')+it.hp);if(it.guard)a.push('開始ガード+'+it.guard);if(it.walk)a.push('歩く距離+'+it.walk);if(it.draw)a.push('初手+'+it.draw);if(it.mana1)a.push('初ターンのマナ+'+it.mana1);if(it.heal)a.push('戦後回復+'+it.heal+'%');if(it.picks)a.push('報酬候補+'+it.picks);if(it.xp)a.push('経験値+'+it.xp+'%');if(it.card)a.push('札「'+CARDS[it.card].n+'」');if(it.trait)for(const k in it.trait)a.push(({endGuard:'余りマナのガード',killHeal:'撃破回復',jumpAtk:'跳躍後の攻撃',wallDmg:'壁ダメージ',burnPlus:'火傷',rootDmg:'拘束への攻撃',distAtk:'遠距離の攻撃',moveGuard:'移動ガード',combo:'連携',overwatch:'迎撃',summonHp:'使役HP',summonAtk:'使役の攻撃',bounce:'跳弾回数'})[k]+'+'+it.trait[k]);if(it.job)a.push(JOBS[it.job].n+'専用');return a.join(' / ')||'初期装備'}
 function jobLine(h){const t=h.tree||{};return TREES[h.cls].filter(n=>n.kind==='job'&&t[n.id]).map(n=>n.job)}
 function jobName(h){const l=jobLine(h);return l.length?JOBS[l[l.length-1]].n:CLASSES[h.cls].n}
 const itemOk=(h,it)=>it&&(!it.cls||it.cls===h.cls)&&(!it.job||jobLine(h).includes(it.job));
 function heroStats(h){const b={atk:0,guard:0,walk:0,draw:0,heal:0,picks:0,xp:0,mana1:0,traits:{}},k=CLASSES[h.cls];let hp=k.hp+(h.level-1)*2;const cards=[],T=h.tree||{};const addE=(e,n=1)=>{if(!e)return;if(e.hp)hp+=e.hp*n;for(const f of['atk','guard','walk','draw','heal','picks','xp','mana1'])b[f]+=(e[f]||0)*n};const addT=t=>{if(t)for(const q in t)b.traits[q]=(b.traits[q]||0)+t[q]};
  for(const n of TREES[h.cls]){const r=T[n.id]||0;if(!r)continue;addE(n.e,r);addT(n.trait);if(n.card)cards.push(n.card)}
- for(const s of['weapon','armor','off','charm']){const it=ITEMS[h.equip[s]];if(!itemOk(h,it))continue;addE(it);addT(it.trait);if(it.card)cards.push(it.card)}b.walk=Math.min(b.walk,2);return{maxHp:hp,bonus:b,cards}}
+ for(const s of['weapon','armor','off','charm']){const it=ITEMS[h.equip[s]];if(!itemOk(h,it))continue;addE(it);addT(it.trait);if(it.card)cards.push(it.card)}for(const[k,n]of Object.entries(activeSets(h))){const S=SETS[k];if(n>=2){addE(S.b2);addT(S.b2.trait)}if(n>=3){addE(S.b3);addT(S.b3.trait)}}b.walk=Math.min(b.walk,2);return{maxHp:hp,bonus:b,cards}}
 const treeSpent=h=>TREES[h.cls].reduce((s,n)=>s+n.cost*((h.tree||{})[n.id]||0),0);
 const perkLeft=h=>h.level-1-treeSpent(h);
 const groupTaken=(h,n)=>n.group&&TREES[h.cls].some(x=>x.group===n.group&&x.id!==n.id&&(h.tree||{})[x.id]);
 const reqMet=(h,n)=>!n.req.length||n.req.some(id=>(h.tree||{})[id]);
 function canLearn(h,id){const n=NODE[id],t=h.tree||{};return(t[id]||0)<n.max&&perkLeft(h)>=n.cost&&h.level>=(n.lv||1)&&reqMet(h,n)&&!groupTaken(h,n)}
 function canForget(h,id){const t=h.tree||{};if(!t[id])return false;if(t[id]>1)return true;return!TREES[h.cls].some(n=>t[n.id]&&n.req.includes(id)&&!n.req.some(r=>r!==id&&t[r]))}
-function learn(h,id){if(!canLearn(h,id))return false;h.tree=h.tree||{};h.tree[id]=(h.tree[id]||0)+1;fixEquip(h);return true}
-function forget(h,id){if(!canForget(h,id))return false;h.tree[id]--;if(!h.tree[id])delete h.tree[id];fixEquip(h);return true}
+function learn(h,id){if(!canLearn(h,id))return false;h.tree=h.tree||{};h.tree[id]=(h.tree[id]||0)+1;fixEquip(h);if(h.deck&&NODE[id].card)addGranted(h,[NODE[id].card]);return true}
+function forget(h,id){if(!canForget(h,id))return false;h.tree[id]--;if(!h.tree[id])delete h.tree[id];fixEquip(h);if(h.deck)trimDeck(h);return true}
 function fixEquip(h){for(const s of['weapon','armor','off','charm']){const it=ITEMS[h.equip[s]];if(h.equip[s]&&!itemOk(h,it))h.equip[s]=s==='weapon'?STARTER[h.cls]:''}}
 function heroLook(h){const L={...h.look},w=ITEMS[h.equip.weapon],o=ITEMS[h.equip.off];L.w=w?w.sp:'';L.sh=o&&o.sp||'';return L}
 function gainXp(h,n){const s=heroStats(h);n=Math.round(n*(1+s.bonus.xp/100));h.xp+=n;let up=0;while(h.level<LEVEL_CAP&&h.xp>=xpNeed(h.level)){h.xp-=xpNeed(h.level);h.level++;up++}if(h.level>=LEVEL_CAP)h.xp=0;return{xp:n,up}}
 const stageXp=i=>30+i*12+(STAGES[i].boss?90:0);
+function rollRune(i,h,R){const boss=STAGES[i].boss;if(!boss&&R()>.3)return null;const free=Object.keys(RUNES).filter(k=>!h.runes.includes(k));return free.length?free[Math.floor(R()*free.length)]:null}
 function rollDrop(i,h,R){const boss=STAGES[i].boss;if(!boss&&R()>.7)return null;const r=R(),rar=boss?'e':i<3?(r<.8?'c':'r'):i<6?(r<.45?'c':r<.9?'r':'e'):(r<.6?'r':'e');const fits=id=>itemOk(h,ITEMS[id]),free=Object.keys(ITEMS).filter(id=>fits(id)&&!h.inv.includes(id));let pool=free.filter(id=>ITEMS[id].rar===rar);if(!pool.length)pool=free;return pool.length?pool[Math.floor(R()*pool.length)]:null}
-function newRun(h,seed){const s=heroStats(h),k=CLASSES[h.cls];const known=TREES[h.cls].filter(n=>n.card&&(h.tree||{})[n.id]).map(n=>n.card);return{extraPool:known,heroId:h.id,pref:{sword:1,spear:2,mage:3,bow:3}[h.cls],name:h.name,cls:h.cls,hp:s.maxHp,maxHp:s.maxHp,bonus:s.bonus,deck:[...k.deck,...s.cards],look:heroLook(h),diff:h.diff||0,stage:0,seed:seed||(Date.now()&0xffffff)}}
-if(typeof module!=='undefined')module.exports={CARDS,CLASSES,FOES,STAGES,REWARD,CLASS_POOL,setupBattle,chooseAI,play,targets,startTurn,endTurn,outcome,alive,newRun,canPlay,mulberry,shuffle,areaTiles,ITEMS,newHero,heroStats,gainXp,stageXp,rollDrop,perkLeft,TREES,NODE,JOBS,canLearn,learn,forget,canForget,jobLine,jobName,costOf,calcDmg,skipsTurn};
+// カード刻印 ------------------------------------------
+const hasDmg=c=>c.e.some(e=>e.k==='dmg'||e.k==='dmgBlock');
+const RUNES={
+ heavy:{n:'強打',d:'ダメージ+2',ok:hasDmg,mod:c=>{for(const e of c.e)if(e.k==='dmg'||e.k==='dmgBlock')e.v+=2}},
+ light:{n:'軽量',d:'コスト-1',ok:c=>c.c>=1,mod:c=>{c.c--}},
+ reach:{n:'長柄',d:'射程+1',ok:c=>c.r.n>0&&c.r.n<8,mod:c=>{c.r.n++}},
+ spark:{n:'閃き',d:'使うと1枚引く',ok:()=>true,mod:c=>{c.e.push({k:'draw',v:1})}},
+ guard:{n:'堅守',d:'使うとガード+3',ok:()=>true,mod:c=>{c.e.push(block(3))}},
+ leech:{n:'吸血',d:'使うとHP2回復',ok:hasDmg,mod:c=>{c.e.push({k:'heal',v:2})}},
+ burn:{n:'灼熱',d:'火傷2を与える',ok:hasDmg,mod:c=>{c.e.push(st('burn',2))}},
+ bind:{n:'束縛',d:'拘束1を与える',ok:hasDmg,mod:c=>{c.e.push(st('root',1))}},
+ shove:{n:'衝撃',d:'1マス押す',ok:hasDmg,mod:c=>{c.e.push({k:'push',v:1})}},
+ twin:{n:'連撃',d:'半分の威力でもう1回',ok:c=>c.e.some(e=>e.k==='dmg'),mod:c=>{const d=c.e.find(e=>e.k==='dmg');c.e.splice(c.e.indexOf(d)+1,0,dmg(Math.ceil(d.v/2)))}},
+ wide:{n:'拡散',d:'十字範囲になる・コスト+1',ok:c=>hasDmg(c)&&!c.a&&c.aim==='enemy'&&c.c<3&&!c.e.some(e=>e.k==='dash'||e.k==='retreat'),mod:c=>{c.a='plus';c.c++}},
+ eternal:{n:'不滅',d:'戦闘中1回の制限がなくなる',ok:c=>!!c.once,mod:c=>{delete c.once}},
+};
+const baseCard=id=>id.split('~')[0];
+function ensureCard(id){if(CARDS[id])return id;const[b,r]=id.split('~'),rn=RUNES[r],base=CARDS[b];if(!base||!rn)throw new Error('card '+id);const c=JSON.parse(JSON.stringify(base));rn.mod(c);c.n=base.n+'✦';c.rune=r;c.d=base.d+' ✦'+rn.n+'：'+rn.d;CARDS[id]=c;return id}
+const runeSlots=h=>Math.min(6,1+Math.floor(h.level/6));
+// デッキ ----------------------------------------------
+const DECK_MIN=12,DECK_MAX=30,COPY_MAX=4,MOVE_MIN=3;
+const granted=h=>{const g={};for(const c of heroStats(h).cards)g[c]=(g[c]||0)+1;return g};
+function availCount(h,id){return Math.min(((h.cards||{})[id]||0)+(granted(h)[id]||0),CARDS[id].once?1:COPY_MAX+(granted(h)[id]||0))}
+function initBuild(h){if(!h.cards){h.cards={};for(const c of CLASSES[h.cls].deck)h.cards[c]=(h.cards[c]||0)+1}if(!h.deck)h.deck=[...CLASSES[h.cls].deck,...heroStats(h).cards];h.ench=h.ench||{};h.runes=h.runes||['heavy','guard'];if(!h.builds){h.builds=[null,null,null];h.cur=0}h.builds=h.builds.map((b,i)=>i===h.cur?null:b);trimDeck(h);return h}
+function trimDeck(h){const c={},d=[];for(const id of h.deck||[]){if(!CARDS[id])continue;c[id]=(c[id]||0)+1;if(c[id]<=availCount(h,id))d.push(id)}h.deck=d;for(const k in h.ench||{})if(!RUNES[h.ench[k]]||!RUNES[h.ench[k]].ok(CARDS[k]))delete h.ench[k]}
+function addGranted(h,ids){for(const c of ids)if(!h.deck.includes(c))h.deck.push(c);trimDeck(h)}
+function deckIssues(h){const a=[],n=h.deck.length;if(n<DECK_MIN)a.push(`デッキが${DECK_MIN}枚未満です`);if(n>DECK_MAX)a.push(`デッキが${DECK_MAX}枚を超えています`);if(h.deck.filter(id=>CARDS[id].t==='move'||CARDS[id].move).length<MOVE_MIN)a.push(`移動できるカードが${MOVE_MIN}枚必要です`);return a}
+function runDeck(h){return h.deck.map(id=>h.ench&&h.ench[id]&&RUNES[h.ench[id]]?ensureCard(id+'~'+h.ench[id]):id)}
+function snapBuild(h){return{tree:h.tree,equip:h.equip,deck:h.deck,ench:h.ench}}
+function switchBuild(h,i){if(i===h.cur)return;h.builds[h.cur]=JSON.parse(JSON.stringify(snapBuild(h)));const b=h.builds[i]||JSON.parse(JSON.stringify(snapBuild(h)));h.builds[i]=null;h.cur=i;Object.assign(h,JSON.parse(JSON.stringify(b)));fixEquip(h);trimDeck(h)}
+// 対戦の土台 ------------------------------------------
+function buildCode(h){return{v:1,n:h.name,c:h.cls,l:h.look,lv:h.level,t:h.tree,e:h.equip,d:h.deck,en:h.ench}}
+function fromCode(o){if(!o||o.v!==1||!CLASSES[o.c]||!o.l||!Array.isArray(o.d))throw new Error('bad');const h={id:'rival',name:String(o.n||'挑戦者').slice(0,10),cls:o.c,look:o.l,level:Math.min(LEVEL_CAP,Math.max(1,o.lv|0)),xp:0,tree:{},equip:{weapon:STARTER[o.c],armor:'',off:'',charm:''},inv:[],cards:{},ench:{},runes:[]};for(const k in o.t||{})if(NODE[k]&&NODE[k].id.startsWith(o.c+'.'))h.tree[k]=Math.min(NODE[k].max,o.t[k]|0);for(const k of['weapon','armor','off','charm'])if(o.e&&ITEMS[o.e[k]]&&ITEMS[o.e[k]].slot===k)h.equip[k]=o.e[k];fixEquip(h);h.deck=o.d.filter(id=>CARDS[id]&&!CARDS[id].foe).slice(0,DECK_MAX);if(h.deck.length<DECK_MIN)throw new Error('bad');for(const k in o.en||{})if(CARDS[k]&&RUNES[o.en[k]]&&RUNES[o.en[k]].ok(CARDS[k]))h.ench[k]=o.en[k];return h}
+function duelRun(h){const r=newRun(h,1),lvHp=(LEVEL_CAP-h.level)*2;r.hp+=lvHp;r.maxHp+=lvHp;return r}
+const DUEL_THEMES=['forest','grave','snow','ash'],DUEL_TURNS=30;
+function setupDuel(a,b,seed){const R0=mulberry(seed),s={n:'模擬戦',theme:DUEL_THEMES[Math.floor(R0()*4)],w:10,h:10,foes:['x']},G=genMap(s,R0);G.R=R0;G.stage=-1;G.turn=1;G.duel=true;[...a.deck,...b.deck].forEach(ensureCard);G.units.push(heroUnit(0,'hero',a,G.pSpot.x,G.pSpot.y,R0));const[fx,fy]=G.fSpots[0],f=heroUnit(1,'foe',b,fx,fy,R0);f.firstDraw+=1;G.units.push(f);return G}
+function duelResult(G){const o=outcome(G);if(o)return o;if(G.turn<=DUEL_TURNS)return null;const a=G.units[0],b=G.units[1],p=a.hp/a.maxHp,q=b.hp/b.maxHp;return p>q?'win':p<q?'lose':'draw'}
+function newRun(h,seed){const s=heroStats(h),k=CLASSES[h.cls];const known=TREES[h.cls].filter(n=>n.card&&(h.tree||{})[n.id]).map(n=>n.card);return{extraPool:known,heroId:h.id,pref:{sword:1,spear:2,mage:3,bow:3}[h.cls],name:h.name,cls:h.cls,hp:s.maxHp,maxHp:s.maxHp,bonus:s.bonus,deck:h.deck?runDeck(h):[...k.deck,...s.cards],look:heroLook(h),diff:h.diff||0,stage:0,seed:seed||(Date.now()&0xffffff)}}
+if(typeof module!=='undefined')module.exports={CARDS,CLASSES,FOES,STAGES,REWARD,CLASS_POOL,setupBattle,chooseAI,play,targets,startTurn,endTurn,outcome,alive,newRun,canPlay,mulberry,shuffle,areaTiles,ITEMS,newHero,heroStats,gainXp,stageXp,rollDrop,rollRune,perkLeft,RUNES,ensureCard,runeSlots,initBuild,trimDeck,deckIssues,runDeck,switchBuild,availCount,addGranted,buildCode,fromCode,duelRun,setupDuel,duelResult,DUEL_TURNS,activeSets,SETS,ITEM_SET,DECK_MIN,DECK_MAX,COPY_MAX,baseCard,TREES,NODE,JOBS,canLearn,learn,forget,canForget,jobLine,jobName,costOf,calcDmg,skipsTurn};

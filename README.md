@@ -7,6 +7,8 @@
 - カード、敵、ステージのデータ: `src/rules.js`
 - 装備、スキルツリー、職業、経験値: `src/rules.js` の `ITEMS`、`TREES`、`JOBS`、`xpNeed`
 - ルールのテスト: `node tools/test.js`
+- 職業どうしの相性: `node tools/duel.js [対戦数] [Lv]`
+- デッキ、刻印、ビルド、対戦の土台: `src/rules.js` の `RUNES`、`SETS`、`setupDuel`、`fromCode`
 - 冒険者の保存、作成、育成の画面: `src/hero.js`
 - 画面と演出: `src/game.js`、`src/page.html`
 - キャラクリの選択肢: `tools/asset-pipeline/catalog.py`
